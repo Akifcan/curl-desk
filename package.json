@@ -1,0 +1,68 @@
+{
+  "name": "curl-desk",
+  "displayName": "Curl Desk",
+  "description": "Postman-like API testing tool inside VS Code",
+  "version": "0.1.0",
+  "publisher": "curl-desk",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "curl-desk.open",
+        "title": "Curl Desk: Open"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "curl-desk.open",
+        "key": "ctrl+shift+h",
+        "mac": "cmd+shift+h"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "curl-desk-sidebar",
+          "title": "Curl Desk",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "curl-desk-sidebar": [
+        {
+          "type": "webview",
+          "id": "curl-desk.sidebar",
+          "name": "Curl Desk"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "curl-desk.open"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.js",
+    "build:webview": "cd webview-ui && npm run build",
+    "build": "npm run build:webview && npm run compile",
+    "watch:ext": "node esbuild.js --watch",
+    "watch:ui": "cd webview-ui && npm run dev",
+    "package": "vsce package --no-dependencies",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  }
+}

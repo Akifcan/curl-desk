@@ -1,0 +1,12 @@
+**/.git/**
+**/node_modules/**
+**/webview-ui/node_modules/**
+webview-ui/src/**
+webview-ui/index.html
+webview-ui/vite.config.ts
+webview-ui/tsconfig.json
+src/**
+tsconfig.json
+esbuild.js
+.gitignore
+**/*.map
