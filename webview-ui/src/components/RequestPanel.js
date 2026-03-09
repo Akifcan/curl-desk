@@ -1,5 +1,6 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
+import { Send, X, AlignLeft, List, Shield } from 'lucide-react';
 import { createKeyValue } from '../types';
 import './RequestPanel.css';
 const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
@@ -35,9 +36,15 @@ export function RequestPanel({ request, onChange, onSend, isLoading }) {
         return 0;
     };
     return (_jsxs("div", { className: "request-panel", children: [_jsxs("div", { className: "url-bar", children: [_jsx("select", { className: "method-select", value: request.method, onChange: (e) => update({ method: e.target.value }), style: { color: getMethodColor(request.method) }, children: METHODS.map((m) => (_jsx("option", { value: m, style: { color: getMethodColor(m) }, children: m }, m))) }), _jsx("input", { className: "url-input", type: "text", placeholder: "https://api.example.com/endpoint", value: request.url, onChange: (e) => update({ url: e.target.value }), onKeyDown: (e) => { if (e.key === 'Enter')
-                            onSend(); } }), _jsx("button", { className: `btn btn-send ${isLoading ? 'loading' : ''}`, onClick: onSend, disabled: isLoading || !request.url.trim(), children: isLoading ? _jsx("span", { className: "spinner" }) : 'Send' })] }), _jsx("div", { className: "request-tabs", children: ['params', 'headers', 'body', 'auth'].map((tab) => {
+                            onSend(); } }), _jsx("button", { className: `btn btn-send ${isLoading ? 'loading' : ''}`, onClick: onSend, disabled: isLoading || !request.url.trim(), children: isLoading ? _jsx("span", { className: "spinner" }) : _jsxs(_Fragment, { children: [_jsx(Send, { size: 13, strokeWidth: 2.5 }), " Send"] }) })] }), _jsx("div", { className: "request-tabs", children: ['params', 'headers', 'body', 'auth'].map((tab) => {
                     const count = tabCount(tab);
-                    return (_jsxs("button", { className: `tab-btn ${activeTab === tab ? 'active' : ''}`, onClick: () => setActiveTab(tab), children: [tab.charAt(0).toUpperCase() + tab.slice(1), count > 0 && _jsx("span", { className: "tab-badge", children: count })] }, tab));
+                    const tabIcon = {
+                        params: _jsx(List, { size: 12, strokeWidth: 2 }),
+                        headers: _jsx(AlignLeft, { size: 12, strokeWidth: 2 }),
+                        body: _jsx(AlignLeft, { size: 12, strokeWidth: 2 }),
+                        auth: _jsx(Shield, { size: 12, strokeWidth: 2 }),
+                    }[tab];
+                    return (_jsxs("button", { className: `tab-btn ${activeTab === tab ? 'active' : ''}`, onClick: () => setActiveTab(tab), children: [tabIcon, tab.charAt(0).toUpperCase() + tab.slice(1), count > 0 && _jsx("span", { className: "tab-badge", children: count })] }, tab));
                 }) }), _jsxs("div", { className: "request-tab-content", children: [(activeTab === 'params' || activeTab === 'headers') && (_jsx(KeyValueTable, { items: request[activeTab], onChange: (items) => updateKeyValues(activeTab, items), onChangeField: (id, key, value) => handleKvChange(activeTab, id, key, value), onRemove: (id) => removeKv(activeTab, id), keyPlaceholder: activeTab === 'params' ? 'param' : 'header' })), activeTab === 'body' && (_jsx(BodyTab, { bodyType: request.bodyType, body: request.body, formData: request.params, onBodyTypeChange: (bodyType) => update({ bodyType }), onBodyChange: (body) => update({ body }) })), activeTab === 'auth' && (_jsx(AuthTab, { auth: request.auth, onAuthChange: (auth) => update({ auth }) }))] })] }));
 }
 function getMethodColor(method) {
@@ -53,7 +60,7 @@ function getMethodColor(method) {
     return colors[method] ?? '#abb2bf';
 }
 function KeyValueTable({ items, onChangeField, onRemove, keyPlaceholder }) {
-    return (_jsxs("div", { className: "kv-table", children: [_jsxs("div", { className: "kv-header", children: [_jsx("span", { className: "kv-check" }), _jsx("span", { className: "kv-key", children: "Key" }), _jsx("span", { className: "kv-val", children: "Value" }), _jsx("span", { className: "kv-del" })] }), items.map((item) => (_jsxs("div", { className: "kv-row", children: [_jsx("input", { type: "checkbox", className: "kv-check", checked: item.enabled, onChange: (e) => onChangeField(item.id, 'enabled', e.target.checked) }), _jsx("input", { className: "kv-input kv-key", type: "text", placeholder: keyPlaceholder, value: item.key, onChange: (e) => onChangeField(item.id, 'key', e.target.value) }), _jsx("input", { className: "kv-input kv-val", type: "text", placeholder: "value", value: item.value, onChange: (e) => onChangeField(item.id, 'value', e.target.value) }), _jsx("button", { className: "kv-del icon-btn", onClick: () => onRemove(item.id), title: "Remove", children: "\u2715" })] }, item.id)))] }));
+    return (_jsxs("div", { className: "kv-table", children: [_jsxs("div", { className: "kv-header", children: [_jsx("span", { className: "kv-check" }), _jsx("span", { className: "kv-key", children: "Key" }), _jsx("span", { className: "kv-val", children: "Value" }), _jsx("span", { className: "kv-del" })] }), items.map((item) => (_jsxs("div", { className: "kv-row", children: [_jsx("input", { type: "checkbox", className: "kv-check", checked: item.enabled, onChange: (e) => onChangeField(item.id, 'enabled', e.target.checked) }), _jsx("input", { className: "kv-input kv-key", type: "text", placeholder: keyPlaceholder, value: item.key, onChange: (e) => onChangeField(item.id, 'key', e.target.value) }), _jsx("input", { className: "kv-input kv-val", type: "text", placeholder: "value", value: item.value, onChange: (e) => onChangeField(item.id, 'value', e.target.value) }), _jsx("button", { className: "kv-del icon-btn", onClick: () => onRemove(item.id), title: "Remove", children: _jsx(X, { size: 11, strokeWidth: 2.5 }) })] }, item.id)))] }));
 }
 function BodyTab({ bodyType, body, onBodyTypeChange, onBodyChange }) {
     return (_jsxs("div", { className: "body-tab", children: [_jsx("div", { className: "body-type-row", children: ['none', 'json', 'text', 'form'].map((type) => (_jsxs("label", { className: "radio-label", children: [_jsx("input", { type: "radio", name: "bodyType", value: type, checked: bodyType === type, onChange: () => onBodyTypeChange(type) }), type === 'none' ? 'None' : type === 'json' ? 'JSON' : type === 'text' ? 'Text' : 'Form'] }, type))) }), bodyType !== 'none' && (_jsx("textarea", { className: "body-editor", value: body, onChange: (e) => onBodyChange(e.target.value), placeholder: bodyType === 'json'

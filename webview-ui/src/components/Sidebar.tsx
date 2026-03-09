@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ChevronRight, ChevronDown, X, Check, Zap, FolderOpen } from 'lucide-react';
+import { Plus, ChevronRight, ChevronDown, X, Check, Zap, Save } from 'lucide-react';
 import { Collection, Request, METHOD_COLORS } from '../types';
 import './Sidebar.css';
 
@@ -57,19 +57,20 @@ export function Sidebar({
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <span className="sidebar-logo">⚡ Curl Desk</span>
+        <Zap size={14} strokeWidth={2.5} />
+        <span className="sidebar-logo">Curl Desk</span>
       </div>
 
       <div className="sidebar-actions">
         <button className="btn btn-primary sidebar-new-btn" onClick={onNewRequest}>
-          + New Request
+          <Plus size={13} strokeWidth={2.5} /> New Request
         </button>
         <button
           className="btn btn-ghost sidebar-collection-btn"
           onClick={() => setAddingCollection(true)}
           title="New Collection"
         >
-          + Collection
+          <Plus size={13} strokeWidth={2.5} /> Collection
         </button>
       </div>
 
@@ -84,17 +85,18 @@ export function Sidebar({
             onChange={(e) => setNewCollectionName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleAddCollection();
-              if (e.key === 'Escape') {
-                setAddingCollection(false);
-                setNewCollectionName('');
-              }
+              if (e.key === 'Escape') { setAddingCollection(false); setNewCollectionName(''); }
             }}
           />
-          <button className="btn btn-primary btn-sm" onClick={handleAddCollection}>✓</button>
+          <button className="btn btn-primary btn-sm btn-icon" onClick={handleAddCollection}>
+            <Check size={12} strokeWidth={2.5} />
+          </button>
           <button
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm btn-icon"
             onClick={() => { setAddingCollection(false); setNewCollectionName(''); }}
-          >✕</button>
+          >
+            <X size={12} strokeWidth={2.5} />
+          </button>
         </div>
       )}
 
@@ -109,14 +111,20 @@ export function Sidebar({
         {collections.map((col) => (
           <div key={col.id} className="collection">
             <div className="collection-header" onClick={() => toggle(col.id)}>
-              <span className="collection-arrow">{expanded.has(col.id) ? '▾' : '▸'}</span>
+              <span className="collection-arrow">
+                {expanded.has(col.id)
+                  ? <ChevronDown size={12} strokeWidth={2} />
+                  : <ChevronRight size={12} strokeWidth={2} />}
+              </span>
               <span className="collection-name">{col.name}</span>
               <span className="collection-count">{col.requests.length}</span>
               <button
                 className="icon-btn delete-btn"
                 onClick={(e) => { e.stopPropagation(); onDeleteCollection(col.id); }}
                 title="Delete collection"
-              >✕</button>
+              >
+                <X size={11} strokeWidth={2.5} />
+              </button>
             </div>
 
             {expanded.has(col.id) && (
@@ -130,10 +138,7 @@ export function Sidebar({
                     className={`request-item ${activeRequestId === req.id ? 'active' : ''}`}
                     onClick={() => onSelectRequest(req)}
                   >
-                    <span
-                      className="request-method"
-                      style={{ color: METHOD_COLORS[req.method] }}
-                    >
+                    <span className="request-method" style={{ color: METHOD_COLORS[req.method] }}>
                       {req.method}
                     </span>
                     <span className="request-name">{req.name || req.url || 'Untitled'}</span>
@@ -141,7 +146,9 @@ export function Sidebar({
                       className="icon-btn delete-btn"
                       onClick={(e) => { e.stopPropagation(); onDeleteRequest(col.id, req.id); }}
                       title="Delete request"
-                    >✕</button>
+                    >
+                      <X size={11} strokeWidth={2.5} />
+                    </button>
                   </div>
                 ))}
 
@@ -159,15 +166,19 @@ export function Sidebar({
                         if (e.key === 'Escape') { setSavingTo(null); setSaveName(''); }
                       }}
                     />
-                    <button className="btn btn-primary btn-sm" onClick={() => handleSave(col.id)}>✓</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => { setSavingTo(null); setSaveName(''); }}>✕</button>
+                    <button className="btn btn-primary btn-sm btn-icon" onClick={() => handleSave(col.id)}>
+                      <Check size={12} strokeWidth={2.5} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setSavingTo(null); setSaveName(''); }}>
+                      <X size={12} strokeWidth={2.5} />
+                    </button>
                   </div>
                 ) : (
                   <button
                     className="btn btn-ghost btn-sm save-here-btn"
                     onClick={() => { setSavingTo(col.id); setSaveName(''); }}
                   >
-                    + Save current request here
+                    <Save size={11} strokeWidth={2} /> Save current here
                   </button>
                 )}
               </div>

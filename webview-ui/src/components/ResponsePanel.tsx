@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AlertTriangle, Clock, HardDrive } from 'lucide-react';
 import { ResponseData } from '../types';
 import './ResponsePanel.css';
 
@@ -74,7 +75,7 @@ export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps
 
         {!isLoading && error && (
           <div className="response-error">
-            <span className="error-icon">⚠</span>
+            <AlertTriangle size={14} strokeWidth={2} />
             <span>{error}</span>
           </div>
         )}
@@ -85,11 +86,11 @@ export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps
               {response.status} {response.statusText}
             </span>
             <span className="meta-item">
-              <span className="meta-label">Time</span>
+              <Clock size={12} strokeWidth={2} className="meta-icon" />
               <span className="meta-value">{response.time}ms</span>
             </span>
             <span className="meta-item">
-              <span className="meta-label">Size</span>
+              <HardDrive size={12} strokeWidth={2} className="meta-icon" />
               <span className="meta-value">{formatSize(response.size)}</span>
             </span>
           </div>

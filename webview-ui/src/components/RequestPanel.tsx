@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Send, X, AlignLeft, List, Shield } from 'lucide-react';
 import { Request, KeyValue, HttpMethod, BodyType, AuthType, createKeyValue } from '../types';
 import './RequestPanel.css';
 
@@ -82,19 +83,26 @@ export function RequestPanel({ request, onChange, onSend, isLoading }: RequestPa
           onClick={onSend}
           disabled={isLoading || !request.url.trim()}
         >
-          {isLoading ? <span className="spinner" /> : 'Send'}
+          {isLoading ? <span className="spinner" /> : <><Send size={13} strokeWidth={2.5} /> Send</>}
         </button>
       </div>
 
       <div className="request-tabs">
         {(['params', 'headers', 'body', 'auth'] as Tab[]).map((tab) => {
           const count = tabCount(tab);
+          const tabIcon = {
+            params: <List size={12} strokeWidth={2} />,
+            headers: <AlignLeft size={12} strokeWidth={2} />,
+            body: <AlignLeft size={12} strokeWidth={2} />,
+            auth: <Shield size={12} strokeWidth={2} />,
+          }[tab];
           return (
             <button
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
               onClick={() => setActiveTab(tab)}
             >
+              {tabIcon}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
               {count > 0 && <span className="tab-badge">{count}</span>}
             </button>
@@ -191,7 +199,7 @@ function KeyValueTable({ items, onChangeField, onRemove, keyPlaceholder }: KvTab
             onClick={() => onRemove(item.id)}
             title="Remove"
           >
-            ✕
+            <X size={11} strokeWidth={2.5} />
           </button>
         </div>
       ))}
