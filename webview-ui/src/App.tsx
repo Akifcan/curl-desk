@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { RequestPanel } from './components/RequestPanel';
-import { ResponsePanel } from './components/ResponsePanel';
+import { Sidebar } from './components/Sidebar/Sidebar';
+import { RequestPanel } from './components/RequestPanel/RequestPanel';
+import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
 import {
   Collection,
   Request,

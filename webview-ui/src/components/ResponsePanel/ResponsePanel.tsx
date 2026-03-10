@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertTriangle, Clock, HardDrive } from 'lucide-react';
-import { ResponseData } from '../types';
+import { ResponseData } from '../../types';
 import './ResponsePanel.css';
 
 interface ResponsePanelProps {

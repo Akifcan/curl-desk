@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Send, X, AlignLeft, List, Shield } from 'lucide-react';
-import { Request, KeyValue, HttpMethod, BodyType, AuthType, createKeyValue } from '../types';
+import { Request, KeyValue, HttpMethod, BodyType, AuthType, createKeyValue } from '../../types';
 import './RequestPanel.css';
 
 const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];

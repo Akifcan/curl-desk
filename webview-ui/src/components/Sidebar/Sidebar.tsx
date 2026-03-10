@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, ChevronRight, ChevronDown, X, Check, Zap, Save } from 'lucide-react';
-import { Collection, Request, METHOD_COLORS } from '../types';
+import { Collection, Request, METHOD_COLORS } from '../../types';
 import './Sidebar.css';
 
 interface SidebarProps {
