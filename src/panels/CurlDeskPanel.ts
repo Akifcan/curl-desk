@@ -46,9 +46,6 @@ export class CurlDeskPanel {
     this._update();
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-    this._panel.onDidChangeViewState(() => {
-      if (this._panel.visible) this._update();
-    }, null, this._disposables);
 
     this._setWebviewMessageListener(this._panel.webview);
   }
