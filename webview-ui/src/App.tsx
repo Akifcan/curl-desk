@@ -264,6 +264,7 @@ export default function App() {
           onChange={(req) => updateTab(activeTab.id, { request: req })}
           onSend={handleSend}
           isLoading={activeTab.isLoading}
+          activeEnv={environments.find((e) => e.id === activeEnvId) ?? null}
         />
         <ResponsePanel
           response={activeTab.response}

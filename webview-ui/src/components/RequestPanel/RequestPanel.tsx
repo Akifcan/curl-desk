@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Send, AlignLeft, List, Shield } from 'lucide-react';
-import { Request, KeyValue, HttpMethod, createKeyValue } from '../../types';
+import { Request, KeyValue, HttpMethod, Environment, createKeyValue } from '../../types';
 import { KeyValueTable } from './KeyValueTable';
 import { BodyTab } from './BodyTab';
 import { AuthTab } from './AuthTab';
+import { VarHighlightInput } from './VarHighlightInput';
 import './RequestPanel.css';
 
 const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
@@ -25,9 +26,10 @@ interface RequestPanelProps {
   onChange: (req: Request) => void;
   onSend: () => void;
   isLoading: boolean;
+  activeEnv: Environment | null;
 }
 
-export function RequestPanel({ request, onChange, onSend, isLoading }: RequestPanelProps) {
+export function RequestPanel({ request, onChange, onSend, isLoading, activeEnv }: RequestPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('params');
 
   const update = (partial: Partial<Request>) => onChange({ ...request, ...partial });
@@ -90,13 +92,12 @@ export function RequestPanel({ request, onChange, onSend, isLoading }: RequestPa
           ))}
         </select>
 
-        <input
-          className="url-input"
-          type="text"
-          placeholder="https://api.example.com/endpoint"
+        <VarHighlightInput
           value={request.url}
-          onChange={(e) => update({ url: e.target.value })}
+          onChange={(url) => update({ url })}
           onKeyDown={(e) => { if (e.key === 'Enter') onSend(); }}
+          placeholder="https://api.example.com/endpoint"
+          activeEnv={activeEnv}
         />
 
         <button

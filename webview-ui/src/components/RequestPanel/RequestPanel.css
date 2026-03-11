@@ -64,6 +64,52 @@
   color: var(--vscode-input-placeholderForeground, #4b5263);
 }
 
+/* Variable highlight input */
+.var-highlight-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.var-highlight-mirror {
+  position: absolute;
+  inset: 0;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: var(--vscode-editor-font-family, 'Consolas, monospace');
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  color: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+.var-token {
+  border-radius: 3px;
+  padding: 1px 0;
+  color: transparent;
+}
+
+.var-defined {
+  background: rgba(152, 195, 121, 0.25);
+  box-shadow: 0 0 0 1px rgba(152, 195, 121, 0.4);
+}
+
+.var-undefined {
+  background: rgba(224, 108, 117, 0.2);
+  box-shadow: 0 0 0 1px rgba(224, 108, 117, 0.4);
+}
+
+.var-highlight-input {
+  flex: none;
+  width: 100%;
+  background: transparent !important;
+  position: relative;
+  box-sizing: border-box;
+}
+
 .btn-send {
   min-width: 84px;
   padding: 8px 22px;
