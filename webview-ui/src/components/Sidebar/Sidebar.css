@@ -1,7 +1,7 @@
 .sidebar {
-  width: 240px;
-  min-width: 200px;
-  max-width: 300px;
+  width: 260px;
+  min-width: 220px;
+  max-width: 320px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -20,7 +20,7 @@
 }
 
 .sidebar-logo {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--vscode-editor-foreground, #abb2bf);
   letter-spacing: 0.4px;
@@ -36,7 +36,7 @@
 .sidebar-new-btn,
 .sidebar-collection-btn {
   width: 100%;
-  font-size: 12px;
+  font-size: 13px;
   text-align: left;
   justify-content: flex-start;
 }
@@ -54,8 +54,8 @@
   color: var(--vscode-input-foreground, #abb2bf);
   border: 1.5px solid var(--vscode-input-border, #3e4451);
   border-radius: 5px;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 5px 9px;
+  font-size: 13px;
   outline: none;
   min-width: 0;
   transition: border-color 0.15s;
@@ -75,7 +75,7 @@
   padding: 24px 14px;
   text-align: center;
   color: var(--vscode-descriptionForeground, #636d83);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -92,11 +92,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   cursor: pointer;
   user-select: none;
   color: var(--vscode-editor-foreground, #abb2bf);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   transition: background 0.1s;
 }
@@ -139,7 +139,7 @@
 
 .collection-empty {
   padding: 6px 14px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--vscode-descriptionForeground, #636d83);
 }
 
@@ -148,9 +148,9 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 10px 6px 22px;
+  padding: 7px 10px 7px 22px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--vscode-editor-foreground, #abb2bf);
   border-radius: 4px;
   margin: 1px 6px;
@@ -167,9 +167,9 @@
 }
 
 .request-method {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  min-width: 42px;
+  min-width: 44px;
   flex-shrink: 0;
 }
 
@@ -178,7 +178,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .icon-btn {
@@ -211,7 +211,7 @@
 
 .save-here-btn {
   margin: 2px 6px;
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
   color: var(--vscode-descriptionForeground, #636d83);
   width: calc(100% - 12px);

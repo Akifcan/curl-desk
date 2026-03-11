@@ -115,7 +115,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   body {
     font-family: var(--vscode-font-family);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--vscode-foreground);
     background: var(--vscode-sideBar-background);
     height: 100vh;
@@ -128,11 +128,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .top-section { padding: 10px; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; }
 
   .open-btn {
-    width: 100%; padding: 8px 12px;
+    width: 100%; padding: 9px 12px;
     background: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none; border-radius: 6px; cursor: pointer;
-    font-size: 12px; font-weight: 600;
+    font-size: 13px; font-weight: 600;
     display: flex; align-items: center; justify-content: center; gap: 6px;
     transition: background 0.15s;
   }
@@ -151,12 +151,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .qr-method {
     background: var(--vscode-input-background);
     border: 1.5px solid var(--vscode-input-border);
-    border-radius: 6px; padding: 5px 18px 5px 7px;
-    font-size: 11px; font-weight: 700; cursor: pointer; outline: none;
+    border-radius: 6px; padding: 6px 20px 6px 8px;
+    font-size: 12px; font-weight: 700; cursor: pointer; outline: none;
     appearance: none; -webkit-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 10 6'%3E%3Cpath fill='%23636d83' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 5px center;
-    min-width: 60px; transition: border-color 0.15s;
+    min-width: 64px; transition: border-color 0.15s;
   }
   .qr-method:focus { border-color: var(--vscode-focusBorder); }
 
@@ -164,8 +164,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     flex: 1; background: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1.5px solid var(--vscode-input-border);
-    border-radius: 6px; padding: 5px 8px;
-    font-size: 11px; outline: none; min-width: 0;
+    border-radius: 6px; padding: 6px 9px;
+    font-size: 12px; outline: none; min-width: 0;
     font-family: var(--vscode-editor-font-family, monospace);
     transition: border-color 0.15s;
   }
@@ -188,8 +188,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     flex: 1; background: none; border: none;
     border-bottom: 2px solid transparent;
     color: var(--vscode-tab-inactiveForeground);
-    cursor: pointer; padding: 7px 6px;
-    font-size: 11px; font-weight: 500;
+    cursor: pointer; padding: 8px 6px;
+    font-size: 12px; font-weight: 500;
     text-align: center; margin-bottom: -1px;
     transition: color 0.15s, border-color 0.15s;
   }
@@ -203,7 +203,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .kv-key, .kv-val {
     flex: 1; background: transparent; color: var(--vscode-foreground);
     border: 1px solid transparent; border-radius: 4px;
-    padding: 3px 5px; font-size: 11px; outline: none; min-width: 0;
+    padding: 4px 5px; font-size: 12px; outline: none; min-width: 0;
     font-family: var(--vscode-editor-font-family, monospace);
     transition: background 0.1s, border-color 0.1s;
   }
@@ -213,23 +213,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .kv-row:hover .kv-del { opacity: 1; }
   .kv-del:hover { color: #e06c75; }
 
-  .body-type-row { display: flex; gap: 10px; padding: 6px 10px; flex-wrap: wrap; border-bottom: 1px solid var(--vscode-panel-border); }
-  .radio-label { display: flex; align-items: center; gap: 4px; font-size: 11px; cursor: pointer; color: var(--vscode-foreground); }
+  .body-type-row { display: flex; gap: 10px; padding: 7px 10px; flex-wrap: wrap; border-bottom: 1px solid var(--vscode-panel-border); }
+  .radio-label { display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; color: var(--vscode-foreground); }
 
   .body-editor {
     width: 100%; background: transparent; color: var(--vscode-foreground);
-    border: none; padding: 6px 10px; font-size: 11px;
+    border: none; padding: 7px 10px; font-size: 12px;
     font-family: var(--vscode-editor-font-family, monospace);
     resize: none; outline: none; min-height: 60px; line-height: 1.6; display: block;
   }
   .body-editor::placeholder { color: var(--vscode-input-placeholderForeground); }
 
   .auth-section { padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; }
-  .field-label { font-size: 10px; font-weight: 600; color: var(--vscode-descriptionForeground); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .field-label { font-size: 11px; font-weight: 600; color: var(--vscode-descriptionForeground); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
   .auth-select, .auth-input {
     width: 100%; background: var(--vscode-input-background); color: var(--vscode-input-foreground);
     border: 1.5px solid var(--vscode-input-border); border-radius: 6px;
-    padding: 5px 8px; font-size: 11px; outline: none;
+    padding: 6px 9px; font-size: 12px; outline: none;
     transition: border-color 0.15s;
   }
   .auth-select:focus, .auth-input:focus { border-color: var(--vscode-focusBorder); }
@@ -237,15 +237,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   .qr-response { border-top: 1px solid var(--vscode-panel-border); display: none; }
   .qr-resp-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-sideBar-background)); }
-  .qr-resp-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-  .qr-resp-meta { font-size: 10px; color: var(--vscode-descriptionForeground); font-weight: 500; }
+  .qr-resp-status { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
+  .qr-resp-meta { font-size: 11px; color: var(--vscode-descriptionForeground); font-weight: 500; }
   .qr-resp-body {
-    margin: 0; padding: 6px 10px; font-size: 11px;
+    margin: 0; padding: 7px 10px; font-size: 12px;
     font-family: var(--vscode-editor-font-family, monospace);
     max-height: 120px; overflow-y: auto;
     white-space: pre-wrap; word-break: break-all; line-height: 1.6;
   }
-  .qr-resp-error { padding: 6px 10px; font-size: 11px; color: #e06c75; word-break: break-word; }
+  .qr-resp-error { padding: 7px 10px; font-size: 12px; color: #e06c75; word-break: break-word; }
 
   .spinner {
     display: inline-block; width: 11px; height: 11px;
@@ -257,10 +257,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   /* Collections/History Tabs */
   .tabs { display: flex; border-bottom: 1px solid var(--vscode-panel-border); flex-shrink: 0; }
   .tab {
-    flex: 1; padding: 8px; background: none; border: none;
+    flex: 1; padding: 9px; background: none; border: none;
     border-bottom: 2px solid transparent;
     color: var(--vscode-tab-inactiveForeground);
-    cursor: pointer; font-size: 12px; font-weight: 500; text-align: center;
+    cursor: pointer; font-size: 13px; font-weight: 500; text-align: center;
     margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
   }
   .tab:hover { color: var(--vscode-foreground); }
@@ -271,22 +271,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .search-input {
     width: 100%; background: var(--vscode-input-background); color: var(--vscode-input-foreground);
     border: 1.5px solid var(--vscode-input-border); border-radius: 6px;
-    padding: 5px 10px; font-size: 12px; outline: none; transition: border-color 0.15s;
+    padding: 6px 10px; font-size: 13px; outline: none; transition: border-color 0.15s;
   }
   .search-input:focus { border-color: var(--vscode-focusBorder); }
   .search-input::placeholder { color: var(--vscode-input-placeholderForeground); }
 
   .list { flex: 1; overflow-y: auto; padding: 6px 0; }
 
-  .empty { padding: 24px 12px; text-align: center; color: var(--vscode-descriptionForeground); font-size: 11px; line-height: 1.7; }
+  .empty { padding: 24px 12px; text-align: center; color: var(--vscode-descriptionForeground); font-size: 12px; line-height: 1.7; }
 
   /* Collection Cards */
   .collection-card { margin: 4px 8px; border-radius: 6px; border: 1px solid var(--vscode-panel-border); overflow: hidden; }
 
   .collection-header {
     display: flex; align-items: center; gap: 5px;
-    padding: 7px 10px; cursor: pointer;
-    font-weight: 600; color: var(--vscode-foreground); font-size: 12px; user-select: none;
+    padding: 8px 10px; cursor: pointer;
+    font-weight: 600; color: var(--vscode-foreground); font-size: 13px; user-select: none;
     background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
     transition: background 0.1s;
   }
@@ -312,24 +312,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   .request-row {
     display: flex; align-items: center; gap: 7px;
-    padding: 6px 10px 6px 22px; cursor: pointer; font-size: 11px;
+    padding: 7px 10px 7px 22px; cursor: pointer; font-size: 12px;
     border-radius: 4px; margin: 1px 6px; transition: background 0.1s;
   }
   .request-row:hover { background: var(--vscode-list-hoverBackground); }
 
-  .method { font-size: 10px; font-weight: 700; min-width: 42px; flex-shrink: 0; }
+  .method { font-size: 11px; font-weight: 700; min-width: 44px; flex-shrink: 0; }
   .req-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--vscode-foreground); }
 
   /* History */
   .history-item {
     display: flex; align-items: center; gap: 8px;
-    padding: 8px 10px; cursor: pointer;
+    padding: 9px 10px; cursor: pointer;
     border-radius: 6px; margin: 3px 8px; transition: background 0.1s;
     border: 1px solid var(--vscode-panel-border);
   }
   .history-item:hover { background: var(--vscode-list-hoverBackground); }
   .history-info { flex: 1; min-width: 0; }
-  .history-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--vscode-foreground); font-size: 11px; }
+  .history-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--vscode-foreground); font-size: 12px; }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--vscode-scrollbarSlider-background); border-radius: 2px; }

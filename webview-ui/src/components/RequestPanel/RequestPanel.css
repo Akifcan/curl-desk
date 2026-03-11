@@ -20,12 +20,12 @@
   background: var(--vscode-input-background, #1d2026);
   border: 1.5px solid var(--vscode-input-border, #3e4451);
   border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: 7px 8px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   outline: none;
-  min-width: 88px;
+  min-width: 92px;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23636d83' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
@@ -65,9 +65,9 @@
 }
 
 .btn-send {
-  min-width: 80px;
-  padding: 7px 20px;
-  font-size: 12px;
+  min-width: 84px;
+  padding: 8px 22px;
+  font-size: 13px;
   font-weight: 600;
   border-radius: 6px;
   display: flex;
@@ -119,8 +119,8 @@
   border-bottom: 2px solid transparent;
   color: var(--vscode-tab-inactiveForeground, #636d83);
   cursor: pointer;
-  padding: 9px 14px;
-  font-size: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -206,8 +206,8 @@ input[type='checkbox'].kv-check {
   border: 1px solid transparent;
   border-radius: 4px;
   color: var(--vscode-editor-foreground, #abb2bf);
-  padding: 4px 6px;
-  font-size: 12px;
+  padding: 5px 6px;
+  font-size: 13px;
   outline: none;
   font-family: var(--vscode-editor-font-family, monospace);
   transition: background 0.1s, border-color 0.1s;
@@ -270,7 +270,7 @@ input[type='checkbox'].kv-check {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--vscode-editor-foreground, #abb2bf);
   cursor: pointer;
 }
@@ -286,8 +286,8 @@ input[type='checkbox'].kv-check {
   background: var(--vscode-editor-background, #282c34);
   color: var(--vscode-editor-foreground, #abb2bf);
   border: none;
-  padding: 10px 16px;
-  font-size: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
   font-family: var(--vscode-editor-font-family, 'Consolas, monospace');
   resize: none;
   outline: none;
@@ -303,7 +303,7 @@ input[type='checkbox'].kv-check {
 .body-none-msg,
 .auth-none-msg {
   padding: 20px 16px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--vscode-descriptionForeground, #636d83);
 }
 
@@ -328,7 +328,7 @@ input[type='checkbox'].kv-check {
 }
 
 .field-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--vscode-descriptionForeground, #636d83);
   min-width: 80px;
@@ -344,8 +344,8 @@ input[type='checkbox'].kv-check {
   color: var(--vscode-input-foreground, #abb2bf);
   border: 1.5px solid var(--vscode-input-border, #3e4451);
   border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 7px 10px;
+  font-size: 13px;
   outline: none;
   transition: border-color 0.15s;
 }
