@@ -43,12 +43,30 @@ export interface ResponseData {
   size: number;
 }
 
+export interface AppTab {
+  id: string;
+  request: Request;
+  response: ResponseData | null;
+  error: string | null;
+  isLoading: boolean;
+}
+
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
 
 export function createKeyValue(): KeyValue {
   return { id: generateId(), key: '', value: '', enabled: true };
+}
+
+export function createAppTab(request?: Request): AppTab {
+  return {
+    id: generateId(),
+    request: request ?? createDefaultRequest(),
+    response: null,
+    error: null,
+    isLoading: false,
+  };
 }
 
 export function createDefaultRequest(): Request {

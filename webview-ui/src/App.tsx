@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar/Sidebar';
+import { TabBar } from './components/TabBar';
 import { RequestPanel } from './components/RequestPanel/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
 import {
+  AppTab,
   Collection,
   Request,
   ResponseData,
-  createDefaultRequest,
+  createAppTab,
   generateId,
 } from './types';
 import { vscode } from './vscode';
@@ -14,10 +16,35 @@ import './App.css';
 
 export default function App() {
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [activeRequest, setActiveRequest] = useState<Request>(createDefaultRequest());
-  const [response, setResponse] = useState<ResponseData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const initialTab = createAppTab();
+  const [tabs, setTabs] = useState<AppTab[]>([initialTab]);
+  const [activeTabId, setActiveTabId] = useState<string>(initialTab.id);
+
+  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+
+  const updateTab = useCallback((id: string, partial: Partial<AppTab>) => {
+    setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, ...partial } : t)));
+  }, []);
+
+  const addTab = useCallback((request?: Request) => {
+    const tab = createAppTab(request);
+    setTabs((prev) => [...prev, tab]);
+    setActiveTabId(tab.id);
+  }, []);
+
+  const closeTab = useCallback((id: string) => {
+    setTabs((prev) => {
+      if (prev.length === 1) return prev;
+      const idx = prev.findIndex((t) => t.id === id);
+      const next = prev.filter((t) => t.id !== id);
+      setActiveTabId((cur) => {
+        if (cur !== id) return cur;
+        return next[Math.max(0, idx - 1)].id;
+      });
+      return next;
+    });
+  }, []);
 
   // Load collections on mount
   useEffect(() => {
@@ -27,33 +54,39 @@ export default function App() {
   // Listen for messages from extension
   useEffect(() => {
     const handler = (event: MessageEvent) => {
-      const message = event.data as { type: string; source?: string; payload: unknown };
+      const message = event.data as { type: string; source?: string; tabId?: string; payload: unknown };
       switch (message.type) {
         case 'COLLECTIONS_LOADED':
           setCollections(message.payload as Collection[]);
           break;
         case 'REQUEST_RESPONSE':
           if (message.source === 'sidebar') break;
-          setResponse(message.payload as ResponseData);
-          setIsLoading(false);
-          setError(null);
+          if (message.tabId) {
+            updateTab(message.tabId, {
+              response: message.payload as ResponseData,
+              isLoading: false,
+              error: null,
+            });
+          }
           break;
         case 'REQUEST_ERROR':
           if (message.source === 'sidebar') break;
-          setError((message.payload as { message: string }).message);
-          setIsLoading(false);
-          setResponse(null);
+          if (message.tabId) {
+            updateTab(message.tabId, {
+              error: (message.payload as { message: string }).message,
+              isLoading: false,
+              response: null,
+            });
+          }
           break;
         case 'LOAD_REQUEST':
-          setActiveRequest(message.payload as Request);
-          setResponse(null);
-          setError(null);
+          addTab(message.payload as Request);
           break;
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, []);
+  }, [updateTab, addTab]);
 
   const saveCollections = useCallback((updated: Collection[]) => {
     setCollections(updated);
@@ -61,52 +94,49 @@ export default function App() {
   }, []);
 
   const handleSend = useCallback(() => {
-    if (!activeRequest.url.trim()) return;
+    if (!activeTab.request.url.trim()) return;
 
-    setIsLoading(true);
-    setError(null);
-    setResponse(null);
+    const tabId = activeTab.id;
+    updateTab(tabId, { isLoading: true, error: null, response: null });
 
     const headers: Record<string, string> = {};
-    activeRequest.headers
+    activeTab.request.headers
       .filter((h) => h.enabled && h.key.trim())
       .forEach((h) => { headers[h.key] = h.value; });
 
-    if (activeRequest.auth.type === 'bearer' && activeRequest.auth.token) {
-      headers['Authorization'] = `Bearer ${activeRequest.auth.token}`;
-    } else if (activeRequest.auth.type === 'basic') {
-      const creds = btoa(`${activeRequest.auth.username}:${activeRequest.auth.password}`);
+    if (activeTab.request.auth.type === 'bearer' && activeTab.request.auth.token) {
+      headers['Authorization'] = `Bearer ${activeTab.request.auth.token}`;
+    } else if (activeTab.request.auth.type === 'basic') {
+      const creds = btoa(`${activeTab.request.auth.username}:${activeTab.request.auth.password}`);
       headers['Authorization'] = `Basic ${creds}`;
     }
 
-    if (activeRequest.bodyType === 'json') {
+    if (activeTab.request.bodyType === 'json') {
       headers['Content-Type'] = 'application/json';
-    } else if (activeRequest.bodyType === 'form') {
+    } else if (activeTab.request.bodyType === 'form') {
       headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
 
     const params: Record<string, string> = {};
-    activeRequest.params
+    activeTab.request.params
       .filter((p) => p.enabled && p.key.trim())
       .forEach((p) => { params[p.key] = p.value; });
 
     vscode.postMessage({
       type: 'SEND_REQUEST',
+      tabId,
       payload: {
-        method: activeRequest.method,
-        url: activeRequest.url,
+        method: activeTab.request.method,
+        url: activeTab.request.url,
         headers,
-        body: activeRequest.bodyType !== 'none' ? activeRequest.body : undefined,
+        body: activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
         params,
       },
     });
-  }, [activeRequest]);
+  }, [activeTab, updateTab]);
 
   const handleAddCollection = (name: string) => {
-    saveCollections([
-      ...collections,
-      { id: generateId(), name, requests: [] },
-    ]);
+    saveCollections([...collections, { id: generateId(), name, requests: [] }]);
   };
 
   const handleDeleteCollection = (id: string) => {
@@ -124,7 +154,7 @@ export default function App() {
   };
 
   const handleSaveToCollection = (collectionId: string, name: string) => {
-    const saved: Request = { ...activeRequest, id: generateId(), name };
+    const saved: Request = { ...activeTab.request, id: generateId(), name };
     saveCollections(
       collections.map((c) =>
         c.id === collectionId ? { ...c, requests: [...c.requests, saved] } : c
@@ -132,39 +162,36 @@ export default function App() {
     );
   };
 
-  const handleSelectRequest = (req: Request) => {
-    setActiveRequest(req);
-    setResponse(null);
-    setError(null);
-  };
-
   return (
     <div className="app">
       <Sidebar
         collections={collections}
-        activeRequestId={activeRequest.id}
-        onSelectRequest={handleSelectRequest}
+        activeRequestId={activeTab.request.id}
+        onSelectRequest={(req) => addTab(req)}
         onAddCollection={handleAddCollection}
         onDeleteCollection={handleDeleteCollection}
         onDeleteRequest={handleDeleteRequest}
-        onNewRequest={() => {
-          setActiveRequest(createDefaultRequest());
-          setResponse(null);
-          setError(null);
-        }}
+        onNewRequest={() => addTab()}
         onSaveToCollection={handleSaveToCollection}
       />
       <div className="main-content">
+        <TabBar
+          tabs={tabs}
+          activeTabId={activeTabId}
+          onSelect={setActiveTabId}
+          onClose={closeTab}
+          onNew={() => addTab()}
+        />
         <RequestPanel
-          request={activeRequest}
-          onChange={setActiveRequest}
+          request={activeTab.request}
+          onChange={(req) => updateTab(activeTab.id, { request: req })}
           onSend={handleSend}
-          isLoading={isLoading}
+          isLoading={activeTab.isLoading}
         />
         <ResponsePanel
-          response={response}
-          error={error}
-          isLoading={isLoading}
+          response={activeTab.response}
+          error={activeTab.error}
+          isLoading={activeTab.isLoading}
         />
       </div>
     </div>

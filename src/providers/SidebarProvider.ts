@@ -21,7 +21,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case 'GET_COLLECTIONS': {
           const collections = this.context.globalState.get('curl-desk:collections', []);
+          const history = this.context.globalState.get('curl-desk:history', []);
           webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
+          webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: history });
           break;
         }
         case 'OPEN_PANEL': {
@@ -46,7 +48,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case 'SEND_REQUEST': {
           try {
             const response = await executeRequest(message.payload);
+            const historyItem = {
+              id: Date.now().toString(36),
+              method: message.payload.method,
+              url: message.payload.url,
+              timestamp: Date.now(),
+            };
+            const history: unknown[] = this.context.globalState.get('curl-desk:history', []);
+            const updatedHistory = [historyItem, ...history].slice(0, 100);
+            await this.context.globalState.update('curl-desk:history', updatedHistory);
             webviewView.webview.postMessage({ type: 'REQUEST_RESPONSE', payload: response });
+            webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: updatedHistory });
           } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Request failed';
             webviewView.webview.postMessage({ type: 'REQUEST_ERROR', payload: { message: msg } });
@@ -76,7 +88,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         const collections = this.context.globalState.get('curl-desk:collections', []);
+        const history = this.context.globalState.get('curl-desk:history', []);
         webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
+        webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: history });
       }
     });
   }
@@ -367,6 +381,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 <script>
   const vscode = acquireVsCodeApi();
   let collections = [];
+  let history = [];
   let activeTab = 'collections';
   let searchQuery = '';
   const METHOD_COLORS = {
@@ -542,6 +557,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     if (e.data.type === 'COLLECTIONS_LOADED') {
       collections = e.data.payload || [];
       render();
+    } else if (e.data.type === 'HISTORY_LOADED') {
+      history = e.data.payload || [];
+      if (activeTab === 'history') render();
     } else if (e.data.type === 'REQUEST_RESPONSE') {
       renderQrResponse('REQUEST_RESPONSE', e.data.payload);
     } else if (e.data.type === 'REQUEST_ERROR') {
@@ -582,20 +600,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const el = document.getElementById('list-content');
 
     if (activeTab === 'history') {
-      const allRequests = collections.flatMap(c => c.requests);
-      if (allRequests.length === 0) {
-        el.innerHTML = '<div class="empty">No history yet.<br>Send some requests first.</div>';
+      if (history.length === 0) {
+        el.innerHTML = '<div class="empty">No history yet.<br>Send a request to see it here.</div>';
         return;
       }
       const filtered = searchQuery
-        ? allRequests.filter(r => r.url?.toLowerCase().includes(searchQuery) || r.method?.toLowerCase().includes(searchQuery))
-        : allRequests;
+        ? history.filter(r => r.url?.toLowerCase().includes(searchQuery) || r.method?.toLowerCase().includes(searchQuery))
+        : history;
 
-      el.innerHTML = filtered.map(req => \`
-        <div class="history-item" onclick='openPanel(\${JSON.stringify(req).replace(/'/g, "&#39;")})'>
-          <span class="method" style="color:\${METHOD_COLORS[req.method] || '#abb2bf'}">\${req.method}</span>
+      el.innerHTML = filtered.map(r => \`
+        <div class="history-item">
+          <span class="method" style="color:\${METHOD_COLORS[r.method] || '#abb2bf'}">\${r.method}</span>
           <div class="history-info">
-            <div class="history-url">\${req.url || 'Untitled'}</div>
+            <div class="history-url">\${escHtml(r.url || '')}</div>
           </div>
         </div>
       \`).join('');

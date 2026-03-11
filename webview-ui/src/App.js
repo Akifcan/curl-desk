@@ -1,17 +1,40 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useCallback } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { RequestPanel } from './components/RequestPanel';
-import { ResponsePanel } from './components/ResponsePanel';
-import { createDefaultRequest, generateId, } from './types';
+import { Sidebar } from './components/Sidebar/Sidebar';
+import { TabBar } from './components/TabBar';
+import { RequestPanel } from './components/RequestPanel/RequestPanel';
+import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
+import { createAppTab, generateId, } from './types';
 import { vscode } from './vscode';
 import './App.css';
 export default function App() {
     const [collections, setCollections] = useState([]);
-    const [activeRequest, setActiveRequest] = useState(createDefaultRequest());
-    const [response, setResponse] = useState(null);
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const initialTab = createAppTab();
+    const [tabs, setTabs] = useState([initialTab]);
+    const [activeTabId, setActiveTabId] = useState(initialTab.id);
+    const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+    const updateTab = useCallback((id, partial) => {
+        setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, ...partial } : t)));
+    }, []);
+    const addTab = useCallback((request) => {
+        const tab = createAppTab(request);
+        setTabs((prev) => [...prev, tab]);
+        setActiveTabId(tab.id);
+    }, []);
+    const closeTab = useCallback((id) => {
+        setTabs((prev) => {
+            if (prev.length === 1)
+                return prev;
+            const idx = prev.findIndex((t) => t.id === id);
+            const next = prev.filter((t) => t.id !== id);
+            setActiveTabId((cur) => {
+                if (cur !== id)
+                    return cur;
+                return next[Math.max(0, idx - 1)].id;
+            });
+            return next;
+        });
+    }, []);
     // Load collections on mount
     useEffect(() => {
         vscode.postMessage({ type: 'GET_COLLECTIONS' });
@@ -25,72 +48,79 @@ export default function App() {
                     setCollections(message.payload);
                     break;
                 case 'REQUEST_RESPONSE':
-                    setResponse(message.payload);
-                    setIsLoading(false);
-                    setError(null);
+                    if (message.source === 'sidebar')
+                        break;
+                    if (message.tabId) {
+                        updateTab(message.tabId, {
+                            response: message.payload,
+                            isLoading: false,
+                            error: null,
+                        });
+                    }
                     break;
                 case 'REQUEST_ERROR':
-                    setError(message.payload.message);
-                    setIsLoading(false);
-                    setResponse(null);
+                    if (message.source === 'sidebar')
+                        break;
+                    if (message.tabId) {
+                        updateTab(message.tabId, {
+                            error: message.payload.message,
+                            isLoading: false,
+                            response: null,
+                        });
+                    }
                     break;
                 case 'LOAD_REQUEST':
-                    setActiveRequest(message.payload);
-                    setResponse(null);
-                    setError(null);
+                    addTab(message.payload);
                     break;
             }
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
-    }, []);
+    }, [updateTab, addTab]);
     const saveCollections = useCallback((updated) => {
         setCollections(updated);
         vscode.postMessage({ type: 'SAVE_COLLECTIONS', payload: updated });
     }, []);
     const handleSend = useCallback(() => {
-        if (!activeRequest.url.trim())
+        if (!activeTab.request.url.trim())
             return;
-        setIsLoading(true);
-        setError(null);
-        setResponse(null);
+        const tabId = activeTab.id;
+        updateTab(tabId, { isLoading: true, error: null, response: null });
         const headers = {};
-        activeRequest.headers
+        activeTab.request.headers
             .filter((h) => h.enabled && h.key.trim())
             .forEach((h) => { headers[h.key] = h.value; });
-        if (activeRequest.auth.type === 'bearer' && activeRequest.auth.token) {
-            headers['Authorization'] = `Bearer ${activeRequest.auth.token}`;
+        if (activeTab.request.auth.type === 'bearer' && activeTab.request.auth.token) {
+            headers['Authorization'] = `Bearer ${activeTab.request.auth.token}`;
         }
-        else if (activeRequest.auth.type === 'basic') {
-            const creds = btoa(`${activeRequest.auth.username}:${activeRequest.auth.password}`);
+        else if (activeTab.request.auth.type === 'basic') {
+            const creds = btoa(`${activeTab.request.auth.username}:${activeTab.request.auth.password}`);
             headers['Authorization'] = `Basic ${creds}`;
         }
-        if (activeRequest.bodyType === 'json') {
+        if (activeTab.request.bodyType === 'json') {
             headers['Content-Type'] = 'application/json';
         }
-        else if (activeRequest.bodyType === 'form') {
+        else if (activeTab.request.bodyType === 'form') {
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         const params = {};
-        activeRequest.params
+        activeTab.request.params
             .filter((p) => p.enabled && p.key.trim())
             .forEach((p) => { params[p.key] = p.value; });
         vscode.postMessage({
             type: 'SEND_REQUEST',
+            tabId,
             payload: {
-                method: activeRequest.method,
-                url: activeRequest.url,
+                method: activeTab.request.method,
+                url: activeTab.request.url,
                 headers,
-                body: activeRequest.bodyType !== 'none' ? activeRequest.body : undefined,
+                body: activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
                 params,
             },
         });
-    }, [activeRequest]);
+    }, [activeTab, updateTab]);
     const handleAddCollection = (name) => {
-        saveCollections([
-            ...collections,
-            { id: generateId(), name, requests: [] },
-        ]);
+        saveCollections([...collections, { id: generateId(), name, requests: [] }]);
     };
     const handleDeleteCollection = (id) => {
         saveCollections(collections.filter((c) => c.id !== id));
@@ -101,17 +131,8 @@ export default function App() {
             : c));
     };
     const handleSaveToCollection = (collectionId, name) => {
-        const saved = { ...activeRequest, id: generateId(), name };
+        const saved = { ...activeTab.request, id: generateId(), name };
         saveCollections(collections.map((c) => c.id === collectionId ? { ...c, requests: [...c.requests, saved] } : c));
     };
-    const handleSelectRequest = (req) => {
-        setActiveRequest(req);
-        setResponse(null);
-        setError(null);
-    };
-    return (_jsxs("div", { className: "app", children: [_jsx(Sidebar, { collections: collections, activeRequestId: activeRequest.id, onSelectRequest: handleSelectRequest, onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onDeleteRequest: handleDeleteRequest, onNewRequest: () => {
-                    setActiveRequest(createDefaultRequest());
-                    setResponse(null);
-                    setError(null);
-                }, onSaveToCollection: handleSaveToCollection }), _jsxs("div", { className: "main-content", children: [_jsx(RequestPanel, { request: activeRequest, onChange: setActiveRequest, onSend: handleSend, isLoading: isLoading }), _jsx(ResponsePanel, { response: response, error: error, isLoading: isLoading })] })] }));
+    return (_jsxs("div", { className: "app", children: [_jsx(Sidebar, { collections: collections, activeRequestId: activeTab.request.id, onSelectRequest: (req) => addTab(req), onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onDeleteRequest: handleDeleteRequest, onNewRequest: () => addTab(), onSaveToCollection: handleSaveToCollection }), _jsxs("div", { className: "main-content", children: [_jsx(TabBar, { tabs: tabs, activeTabId: activeTabId, onSelect: setActiveTabId, onClose: closeTab, onNew: () => addTab() }), _jsx(RequestPanel, { request: activeTab.request, onChange: (req) => updateTab(activeTab.id, { request: req }), onSend: handleSend, isLoading: activeTab.isLoading }), _jsx(ResponsePanel, { response: activeTab.response, error: activeTab.error, isLoading: activeTab.isLoading })] })] }));
 }

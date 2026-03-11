@@ -4,6 +4,15 @@ export function generateId() {
 export function createKeyValue() {
     return { id: generateId(), key: '', value: '', enabled: true };
 }
+export function createAppTab(request) {
+    return {
+        id: generateId(),
+        request: request ?? createDefaultRequest(),
+        response: null,
+        error: null,
+        isLoading: false,
+    };
+}
 export function createDefaultRequest() {
     return {
         id: generateId(),
