@@ -1,6 +1,18 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 export type BodyType = 'none' | 'json' | 'text' | 'form';
 export type AuthType = 'none' | 'bearer' | 'basic';
+export type FormFieldType = 'text' | 'file';
+
+export interface FormField {
+  id: string;
+  key: string;
+  value: string;
+  type: FormFieldType;
+  enabled: boolean;
+  fileName?: string;
+  fileData?: string;   // base64 data URL, e.g. "data:image/png;base64,..."
+  fileMimeType?: string;
+}
 
 export interface KeyValue {
   id: string;
@@ -25,6 +37,7 @@ export interface Request {
   headers: KeyValue[];
   body: string;
   bodyType: BodyType;
+  formFields?: FormField[];
   auth: Auth;
 }
 
@@ -59,6 +72,10 @@ export function createKeyValue(): KeyValue {
   return { id: generateId(), key: '', value: '', enabled: true };
 }
 
+export function createFormField(): FormField {
+  return { id: generateId(), key: '', value: '', type: 'text', enabled: true };
+}
+
 export function createAppTab(request?: Request): AppTab {
   return {
     id: generateId(),
@@ -79,6 +96,7 @@ export function createDefaultRequest(): Request {
     headers: [createKeyValue()],
     body: '{\n  \n}',
     bodyType: 'none',
+    formFields: [createFormField()],
     auth: { type: 'none', token: '', username: '', password: '' },
   };
 }

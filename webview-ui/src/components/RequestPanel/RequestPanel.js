@@ -38,8 +38,12 @@ export function RequestPanel({ request, onChange, onSend, isLoading }) {
             return request.params.filter((p) => p.key).length;
         if (tab === 'headers')
             return request.headers.filter((h) => h.key).length;
-        if (tab === 'body')
+        if (tab === 'body') {
+            if (request.bodyType === 'form') {
+                return request.formFields?.filter((f) => f.enabled && f.key).length ?? 0;
+            }
             return request.bodyType !== 'none' ? 1 : 0;
+        }
         if (tab === 'auth')
             return request.auth.type !== 'none' ? 1 : 0;
         return 0;
@@ -54,5 +58,5 @@ export function RequestPanel({ request, onChange, onSend, isLoading }) {
                             onSend(); } }), _jsx("button", { className: `btn btn-send ${isLoading ? 'loading' : ''}`, onClick: onSend, disabled: isLoading || !request.url.trim(), children: isLoading ? _jsx("span", { className: "spinner" }) : _jsxs(_Fragment, { children: [_jsx(Send, { size: 13, strokeWidth: 2.5 }), " Send"] }) })] }), _jsx("div", { className: "request-tabs", children: ['params', 'headers', 'body', 'auth'].map((tab) => {
                     const count = tabCount(tab);
                     return (_jsxs("button", { className: `tab-btn ${activeTab === tab ? 'active' : ''}`, onClick: () => setActiveTab(tab), children: [TAB_ICONS[tab], tab.charAt(0).toUpperCase() + tab.slice(1), count > 0 && _jsx("span", { className: "tab-badge", children: count })] }, tab));
-                }) }), _jsxs("div", { className: "request-tab-content", children: [(activeTab === 'params' || activeTab === 'headers') && (_jsx(KeyValueTable, { items: request[activeTab], onChangeField: (id, key, value) => handleKvChange(activeTab, id, key, value), onRemove: (id) => removeKv(activeTab, id), keyPlaceholder: activeTab === 'params' ? 'param' : 'header' })), activeTab === 'body' && (_jsx(BodyTab, { bodyType: request.bodyType, body: request.body, onBodyTypeChange: (bodyType) => update({ bodyType }), onBodyChange: (body) => update({ body }) })), activeTab === 'auth' && (_jsx(AuthTab, { auth: request.auth, onAuthChange: (auth) => update({ auth }) }))] })] }));
+                }) }), _jsxs("div", { className: "request-tab-content", children: [(activeTab === 'params' || activeTab === 'headers') && (_jsx(KeyValueTable, { items: request[activeTab], onChangeField: (id, key, value) => handleKvChange(activeTab, id, key, value), onRemove: (id) => removeKv(activeTab, id), keyPlaceholder: activeTab === 'params' ? 'param' : 'header' })), activeTab === 'body' && (_jsx(BodyTab, { bodyType: request.bodyType, body: request.body, formFields: request.formFields, onBodyTypeChange: (bodyType) => update({ bodyType }), onBodyChange: (body) => update({ body }), onFormFieldsChange: (formFields) => update({ formFields }) })), activeTab === 'auth' && (_jsx(AuthTab, { auth: request.auth, onAuthChange: (auth) => update({ auth }) }))] })] }));
 }

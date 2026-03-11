@@ -57,7 +57,12 @@ export function RequestPanel({ request, onChange, onSend, isLoading }: RequestPa
   const tabCount = (tab: Tab) => {
     if (tab === 'params') return request.params.filter((p) => p.key).length;
     if (tab === 'headers') return request.headers.filter((h) => h.key).length;
-    if (tab === 'body') return request.bodyType !== 'none' ? 1 : 0;
+    if (tab === 'body') {
+      if (request.bodyType === 'form') {
+        return request.formFields?.filter((f) => f.enabled && f.key).length ?? 0;
+      }
+      return request.bodyType !== 'none' ? 1 : 0;
+    }
     if (tab === 'auth') return request.auth.type !== 'none' ? 1 : 0;
     return 0;
   };
@@ -134,8 +139,10 @@ export function RequestPanel({ request, onChange, onSend, isLoading }: RequestPa
           <BodyTab
             bodyType={request.bodyType}
             body={request.body}
+            formFields={request.formFields}
             onBodyTypeChange={(bodyType) => update({ bodyType })}
             onBodyChange={(body) => update({ body })}
+            onFormFieldsChange={(formFields) => update({ formFields })}
           />
         )}
 

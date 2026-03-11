@@ -216,6 +216,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .body-type-row { display: flex; gap: 10px; padding: 7px 10px; flex-wrap: wrap; border-bottom: 1px solid var(--vscode-panel-border); }
   .radio-label { display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; color: var(--vscode-foreground); }
 
+  .form-type-select {
+    width: 54px; flex-shrink: 0;
+    background: var(--vscode-input-background); color: var(--vscode-descriptionForeground);
+    border: 1px solid transparent; border-radius: 4px;
+    padding: 3px 3px; font-size: 11px; outline: none; cursor: pointer;
+    transition: border-color 0.1s;
+  }
+  .form-type-select:hover, .form-type-select:focus { border-color: var(--vscode-input-border); }
+
+  .file-pick-btn {
+    flex: 2; display: flex; align-items: center; gap: 4px;
+    padding: 3px 5px; background: transparent; border: 1px solid transparent; border-radius: 4px;
+    cursor: pointer; font-size: 11px; color: var(--vscode-foreground); overflow: hidden; min-width: 0;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .file-pick-btn:hover { background: var(--vscode-input-background); border-color: var(--vscode-input-border); }
+  .file-pick-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-placeholder { color: var(--vscode-input-placeholderForeground) !important; }
+
   .body-editor {
     width: 100%; background: transparent; color: var(--vscode-foreground);
     border: none; padding: 7px 10px; font-size: 12px;
@@ -397,6 +416,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     headers: [{ key: '', value: '' }],
     bodyType: 'none',
     body: '',
+    formFields: [{ key: '', value: '', type: 'text', enabled: true, fileName: '', fileData: '' }],
     authType: 'none',
     authToken: '',
     authUser: '',
@@ -429,7 +449,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         </div>
       \`).join('');
     } else if (qrState.activeTab === 'body') {
-      el.innerHTML = \`
+      const typeRow = \`
         <div class="body-type-row">
           \${['none', 'json', 'text', 'form'].map(t => \`
             <label class="radio-label">
@@ -439,12 +459,43 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             </label>
           \`).join('')}
         </div>
-        \${qrState.bodyType !== 'none' ? \`
-          <textarea class="body-editor"
-            placeholder="\${qrState.bodyType === 'json' ? '{\\n  &quot;key&quot;: &quot;value&quot;\\n}' : qrState.bodyType === 'form' ? 'key=value&amp;key2=value2' : 'Request body...'}"
-            oninput="qrState.body = this.value">\${escHtml(qrState.body)}</textarea>
-        \` : '<div style="padding:8px;font-size:11px;color:var(--vscode-descriptionForeground)">No body.</div>'}
       \`;
+      if (qrState.bodyType === 'none') {
+        el.innerHTML = typeRow + '<div style="padding:8px 10px;font-size:11px;color:var(--vscode-descriptionForeground)">No body.</div>';
+      } else if (qrState.bodyType === 'form') {
+        el.innerHTML = typeRow + \`
+          <div style="padding:2px 0;">
+            \${qrState.formFields.map((f, i) => \`
+              <div class="kv-row">
+                <input type="checkbox" \${f.enabled ? 'checked' : ''} style="flex-shrink:0;width:13px;height:13px;accent-color:var(--vscode-focusBorder);"
+                  onchange="qrFormField(\${i}, 'enabled', this.checked)" />
+                <input class="kv-key" type="text" placeholder="key" value="\${escHtml(f.key)}"
+                  oninput="qrFormField(\${i}, 'key', this.value)" />
+                <select class="form-type-select" onchange="qrFormFieldType(\${i}, this.value)">
+                  <option value="text" \${f.type === 'text' ? 'selected' : ''}>Text</option>
+                  <option value="file" \${f.type === 'file' ? 'selected' : ''}>File</option>
+                </select>
+                \${f.type === 'text' ? \`
+                  <input class="kv-val" type="text" placeholder="value" value="\${escHtml(f.value)}"
+                    oninput="qrFormField(\${i}, 'value', this.value)" />
+                \` : \`
+                  <label class="file-pick-btn" onclick="document.getElementById('qrff-\${i}').click()">
+                    <input type="file" id="qrff-\${i}" style="display:none" onchange="qrFormFile(\${i}, this)" />
+                    📎 <span class="\${f.fileName ? '' : 'file-placeholder'}">\${f.fileName ? escHtml(f.fileName) : 'Choose file'}</span>
+                  </label>
+                \`}
+                <button class="kv-del" onclick="qrFormRemove(\${i})">✕</button>
+              </div>
+            \`).join('')}
+          </div>
+        \`;
+      } else {
+        el.innerHTML = typeRow + \`
+          <textarea class="body-editor"
+            placeholder="\${qrState.bodyType === 'json' ? '{\\n  &quot;key&quot;: &quot;value&quot;\\n}' : 'Request body...'}"
+            oninput="qrState.body = this.value">\${escHtml(qrState.body)}</textarea>
+        \`;
+      }
     } else if (qrState.activeTab === 'auth') {
       el.innerHTML = \`
         <div class="auth-section">
@@ -495,6 +546,48 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     renderQrTabContent();
   }
 
+  function qrFormField(index, field, value) {
+    qrState.formFields[index][field] = value;
+    const last = qrState.formFields[qrState.formFields.length - 1];
+    if (last.key || last.value || last.fileName) {
+      qrState.formFields.push({ key: '', value: '', type: 'text', enabled: true, fileName: '', fileData: '' });
+      renderQrTabContent();
+    }
+  }
+
+  function qrFormFieldType(index, type) {
+    qrState.formFields[index].type = type;
+    qrState.formFields[index].value = '';
+    qrState.formFields[index].fileName = '';
+    qrState.formFields[index].fileData = '';
+    renderQrTabContent();
+  }
+
+  function qrFormRemove(index) {
+    qrState.formFields.splice(index, 1);
+    if (qrState.formFields.length === 0) {
+      qrState.formFields.push({ key: '', value: '', type: 'text', enabled: true, fileName: '', fileData: '' });
+    }
+    renderQrTabContent();
+  }
+
+  function qrFormFile(index, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      qrState.formFields[index].fileName = file.name;
+      qrState.formFields[index].fileData = e.target.result;
+      qrState.formFields[index].fileMimeType = file.type || 'application/octet-stream';
+      const last = qrState.formFields[qrState.formFields.length - 1];
+      if (last.key || last.value || last.fileName) {
+        qrState.formFields.push({ key: '', value: '', type: 'text', enabled: true, fileName: '', fileData: '' });
+      }
+      renderQrTabContent();
+    };
+    reader.readAsDataURL(file);
+  }
+
   function sendQuickRequest() {
     if (!qrState.url.trim() || qrState.isLoading) return;
     qrState.isLoading = true;
@@ -510,7 +603,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       hdrs['Authorization'] = 'Basic ' + btoa(qrState.authUser + ':' + qrState.authPass);
     }
     if (qrState.bodyType === 'json') hdrs['Content-Type'] = 'application/json';
-    else if (qrState.bodyType === 'form') hdrs['Content-Type'] = 'application/x-www-form-urlencoded';
+    // form-data: Content-Type with boundary is set by the extension host
+
+    const isForm = qrState.bodyType === 'form';
+    const formFields = isForm
+      ? qrState.formFields.filter(f => f.enabled && f.key.trim()).map(f => ({
+          key: f.key, value: f.value, type: f.type,
+          fileName: f.fileName, fileData: f.fileData, fileMimeType: f.fileMimeType
+        }))
+      : undefined;
 
     vscode.postMessage({
       type: 'SEND_REQUEST',
@@ -518,7 +619,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         method: qrState.method,
         url: qrState.url,
         headers: hdrs,
-        body: qrState.bodyType !== 'none' ? qrState.body : undefined,
+        body: !isForm && qrState.bodyType !== 'none' ? qrState.body : undefined,
+        formFields,
         params: {},
       }
     });

@@ -2,12 +2,22 @@ import * as http from 'http';
 import * as https from 'https';
 import { URL } from 'url';
 
+export interface FormField {
+  key: string;
+  value: string;
+  type: 'text' | 'file';
+  fileName?: string;
+  fileData?: string;   // base64 data URL: "data:mime/type;base64,..."
+  fileMimeType?: string;
+}
+
 export interface RequestConfig {
   method: string;
   url: string;
   headers: Record<string, string>;
   body?: string;
   params?: Record<string, string>;
+  formFields?: FormField[];
 }
 
 export interface ResponseData {
@@ -17,6 +27,37 @@ export interface ResponseData {
   body: string;
   time: number;
   size: number;
+}
+
+function buildMultipart(fields: FormField[]): { buffer: Buffer; boundary: string } {
+  const boundary = `----FormBoundary${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  const parts: Buffer[] = [];
+
+  for (const field of fields) {
+    if (!field.key.trim()) continue;
+
+    const head = `--${boundary}\r\n`;
+
+    if (field.type === 'file' && field.fileData) {
+      const match = field.fileData.match(/^data:([^;]+);base64,(.+)$/s);
+      if (!match) continue;
+      const mimeType = match[1];
+      const fileBuffer = Buffer.from(match[2], 'base64');
+      const fileName = field.fileName ?? 'file';
+      parts.push(Buffer.from(
+        `${head}Content-Disposition: form-data; name="${field.key}"; filename="${fileName}"\r\nContent-Type: ${mimeType}\r\n\r\n`
+      ));
+      parts.push(fileBuffer);
+      parts.push(Buffer.from('\r\n'));
+    } else {
+      parts.push(Buffer.from(
+        `${head}Content-Disposition: form-data; name="${field.key}"\r\n\r\n${field.value}\r\n`
+      ));
+    }
+  }
+
+  parts.push(Buffer.from(`--${boundary}--\r\n`));
+  return { buffer: Buffer.concat(parts), boundary };
 }
 
 export function executeRequest(config: RequestConfig): Promise<ResponseData> {
@@ -35,15 +76,26 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
       });
     }
 
+    const headers = { ...config.headers };
+    let bodyBuffer: Buffer | undefined;
+
+    if (config.formFields && config.formFields.length > 0) {
+      const { buffer, boundary } = buildMultipart(config.formFields);
+      bodyBuffer = buffer;
+      headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`;
+      headers['Content-Length'] = String(buffer.byteLength);
+    } else if (config.body) {
+      bodyBuffer = Buffer.from(config.body, 'utf8');
+      headers['Content-Length'] = String(bodyBuffer.byteLength);
+    }
+
     const isHttps = urlObj.protocol === 'https:';
     const options: http.RequestOptions = {
       method: config.method.toUpperCase(),
       hostname: urlObj.hostname,
-      port: urlObj.port
-        ? parseInt(urlObj.port)
-        : isHttps ? 443 : 80,
+      port: urlObj.port ? parseInt(urlObj.port) : isHttps ? 443 : 80,
       path: urlObj.pathname + urlObj.search,
-      headers: config.headers,
+      headers,
     };
 
     const startTime = Date.now();
@@ -51,26 +103,24 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
 
     const req = protocol.request(options, (res) => {
       const chunks: Buffer[] = [];
-
       res.on('data', (chunk: Buffer) => chunks.push(chunk));
-
       res.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const body = buffer.toString('utf8');
         const time = Date.now() - startTime;
         const size = buffer.byteLength;
 
-        const headers: Record<string, string> = {};
+        const responseHeaders: Record<string, string> = {};
         Object.entries(res.headers).forEach(([k, v]) => {
           if (v !== undefined) {
-            headers[k] = Array.isArray(v) ? v.join(', ') : v;
+            responseHeaders[k] = Array.isArray(v) ? v.join(', ') : v;
           }
         });
 
         resolve({
           status: res.statusCode ?? 0,
           statusText: res.statusMessage ?? '',
-          headers,
+          headers: responseHeaders,
           body,
           time,
           size,
@@ -79,15 +129,14 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
     });
 
     req.on('error', (err) => reject(err));
-
     req.setTimeout(30000, () => {
       req.destroy();
       reject(new Error('Request timed out after 30 seconds'));
     });
 
     const method = config.method.toUpperCase();
-    if (config.body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-      req.write(config.body);
+    if (bodyBuffer && ['POST', 'PUT', 'PATCH'].includes(method)) {
+      req.write(bodyBuffer);
     }
 
     req.end();

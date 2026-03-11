@@ -4,6 +4,9 @@ export function generateId() {
 export function createKeyValue() {
     return { id: generateId(), key: '', value: '', enabled: true };
 }
+export function createFormField() {
+    return { id: generateId(), key: '', value: '', type: 'text', enabled: true };
+}
 export function createAppTab(request) {
     return {
         id: generateId(),
@@ -23,6 +26,7 @@ export function createDefaultRequest() {
         headers: [createKeyValue()],
         body: '{\n  \n}',
         bodyType: 'none',
+        formFields: [createFormField()],
         auth: { type: 'none', token: '', username: '', password: '' },
     };
 }

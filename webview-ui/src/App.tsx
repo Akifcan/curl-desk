@@ -113,14 +113,18 @@ export default function App() {
 
     if (activeTab.request.bodyType === 'json') {
       headers['Content-Type'] = 'application/json';
-    } else if (activeTab.request.bodyType === 'form') {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
+    // form-data: Content-Type with boundary is set by the extension host
 
     const params: Record<string, string> = {};
     activeTab.request.params
       .filter((p) => p.enabled && p.key.trim())
       .forEach((p) => { params[p.key] = p.value; });
+
+    const isForm = activeTab.request.bodyType === 'form';
+    const formFields = isForm
+      ? (activeTab.request.formFields ?? []).filter((f) => f.enabled && f.key.trim())
+      : undefined;
 
     vscode.postMessage({
       type: 'SEND_REQUEST',
@@ -129,7 +133,8 @@ export default function App() {
         method: activeTab.request.method,
         url: activeTab.request.url,
         headers,
-        body: activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
+        body: !isForm && activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
+        formFields,
         params,
       },
     });
