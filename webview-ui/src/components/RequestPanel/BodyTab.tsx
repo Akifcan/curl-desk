@@ -5,9 +5,10 @@ interface BodyTabProps {
   body: string;
   onBodyTypeChange: (type: BodyType) => void;
   onBodyChange: (body: string) => void;
+  name?: string;
 }
 
-export function BodyTab({ bodyType, body, onBodyTypeChange, onBodyChange }: BodyTabProps) {
+export function BodyTab({ bodyType, body, onBodyTypeChange, onBodyChange, name = 'bodyType' }: BodyTabProps) {
   return (
     <div className="body-tab">
       <div className="body-type-row">
@@ -15,7 +16,7 @@ export function BodyTab({ bodyType, body, onBodyTypeChange, onBodyChange }: Body
           <label key={type} className="radio-label">
             <input
               type="radio"
-              name="bodyType"
+              name={name}
               value={type}
               checked={bodyType === type}
               onChange={() => onBodyTypeChange(type)}

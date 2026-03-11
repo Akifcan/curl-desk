@@ -84,10 +84,10 @@ export class CurlDeskPanel {
           case 'SEND_REQUEST': {
             try {
               const response = await executeRequest(message.payload);
-              webview.postMessage({ type: 'REQUEST_RESPONSE', payload: response });
+              webview.postMessage({ type: 'REQUEST_RESPONSE', source: message.source, payload: response });
             } catch (err: unknown) {
               const msg = err instanceof Error ? err.message : 'Request failed';
-              webview.postMessage({ type: 'REQUEST_ERROR', payload: { message: msg } });
+              webview.postMessage({ type: 'REQUEST_ERROR', source: message.source, payload: { message: msg } });
             }
             break;
           }

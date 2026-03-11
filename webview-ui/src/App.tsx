@@ -27,17 +27,19 @@ export default function App() {
   // Listen for messages from extension
   useEffect(() => {
     const handler = (event: MessageEvent) => {
-      const message = event.data as { type: string; payload: unknown };
+      const message = event.data as { type: string; source?: string; payload: unknown };
       switch (message.type) {
         case 'COLLECTIONS_LOADED':
           setCollections(message.payload as Collection[]);
           break;
         case 'REQUEST_RESPONSE':
+          if (message.source === 'sidebar') break;
           setResponse(message.payload as ResponseData);
           setIsLoading(false);
           setError(null);
           break;
         case 'REQUEST_ERROR':
+          if (message.source === 'sidebar') break;
           setError((message.payload as { message: string }).message);
           setIsLoading(false);
           setResponse(null);

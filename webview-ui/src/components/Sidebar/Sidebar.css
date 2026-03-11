@@ -12,7 +12,10 @@
 }
 
 .sidebar-header {
-  padding: 12px 14px 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid var(--vscode-panel-border, #181a1f);
 }
 
@@ -20,14 +23,14 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--vscode-editor-foreground, #abb2bf);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .sidebar-actions {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+  gap: 6px;
+  padding: 10px 10px 8px;
 }
 
 .sidebar-new-btn,
@@ -35,12 +38,13 @@
   width: 100%;
   font-size: 12px;
   text-align: left;
+  justify-content: flex-start;
 }
 
 .sidebar-input-row {
   display: flex;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   align-items: center;
 }
 
@@ -48,12 +52,13 @@
   flex: 1;
   background: var(--vscode-input-background, #1d2026);
   color: var(--vscode-input-foreground, #abb2bf);
-  border: 1px solid var(--vscode-input-border, #3e4451);
-  border-radius: 3px;
-  padding: 3px 6px;
+  border: 1.5px solid var(--vscode-input-border, #3e4451);
+  border-radius: 5px;
+  padding: 4px 8px;
   font-size: 12px;
   outline: none;
   min-width: 0;
+  transition: border-color 0.15s;
 }
 
 .sidebar-input:focus {
@@ -63,31 +68,37 @@
 .sidebar-collections {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .sidebar-empty {
-  padding: 20px 14px;
+  padding: 24px 14px;
   text-align: center;
   color: var(--vscode-descriptionForeground, #636d83);
   font-size: 11px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
+/* Collection Card */
 .collection {
-  border-bottom: 1px solid var(--vscode-panel-border, #181a1f);
+  margin: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--vscode-panel-border, #2a2d36);
+  overflow: hidden;
+  background: var(--vscode-editorWidget-background, #282c34);
 }
 
 .collection-header {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+  gap: 5px;
+  padding: 7px 10px;
   cursor: pointer;
   user-select: none;
   color: var(--vscode-editor-foreground, #abb2bf);
   font-size: 12px;
   font-weight: 600;
+  transition: background 0.1s;
 }
 
 .collection-header:hover {
@@ -95,10 +106,11 @@
 }
 
 .collection-arrow {
-  font-size: 10px;
   color: var(--vscode-descriptionForeground, #636d83);
-  width: 10px;
+  width: 12px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .collection-name {
@@ -110,32 +122,39 @@
 
 .collection-count {
   font-size: 10px;
+  font-weight: 600;
   background: var(--vscode-badge-background, #4d78cc);
   color: var(--vscode-badge-foreground, #fff);
-  border-radius: 8px;
-  padding: 1px 5px;
-  min-width: 16px;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
   text-align: center;
 }
 
 .collection-requests {
-  padding-bottom: 4px;
+  border-top: 1px solid var(--vscode-panel-border, #2a2d36);
+  padding: 4px 0;
+  background: var(--vscode-sideBar-background, #21252b);
 }
 
 .collection-empty {
-  padding: 4px 28px;
+  padding: 6px 14px;
   font-size: 11px;
   color: var(--vscode-descriptionForeground, #636d83);
 }
 
+/* Request Items */
 .request-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 8px 5px 24px;
+  gap: 7px;
+  padding: 6px 10px 6px 22px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--vscode-editor-foreground, #abb2bf);
+  border-radius: 4px;
+  margin: 1px 6px;
+  transition: background 0.1s;
 }
 
 .request-item:hover {
@@ -166,13 +185,14 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 1px 4px;
+  padding: 2px 4px;
   border-radius: 3px;
-  font-size: 12px;
   opacity: 0;
   color: var(--vscode-descriptionForeground, #636d83);
-  transition: opacity 0.1s;
+  transition: opacity 0.1s, color 0.1s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .collection-header:hover .icon-btn,
@@ -182,17 +202,22 @@
 
 .delete-btn:hover {
   color: var(--vscode-errorForeground, #e06c75) !important;
-  background: var(--vscode-list-hoverBackground, #2a2d36);
+  background: rgba(224, 108, 117, 0.1);
 }
 
 .save-row {
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .save-here-btn {
-  margin: 2px 8px 2px 24px;
+  margin: 2px 6px;
   font-size: 11px;
   text-align: left;
   color: var(--vscode-descriptionForeground, #636d83);
-  width: calc(100% - 32px);
+  width: calc(100% - 12px);
+  justify-content: flex-start;
+}
+
+.save-here-btn:hover {
+  color: var(--vscode-editor-foreground, #abb2bf);
 }
