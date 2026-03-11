@@ -15,6 +15,10 @@
       {
         "command": "curl-desk.open",
         "title": "Curl Desk: Open"
+      },
+      {
+        "command": "curl-desk.sendSelection",
+        "title": "Curl Desk: Use as Request Body"
       }
     ],
     "keybindings": [
@@ -46,6 +50,17 @@
       "commandPalette": [
         {
           "command": "curl-desk.open"
+        },
+        {
+          "command": "curl-desk.sendSelection",
+          "when": "editorHasSelection"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "curl-desk.sendSelection",
+          "when": "editorHasSelection",
+          "group": "curl-desk@1"
         }
       ]
     }

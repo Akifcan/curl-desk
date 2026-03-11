@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { TabBar } from './components/TabBar';
 import { RequestPanel } from './components/RequestPanel/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
 import {
   AppTab,
+  BodyType,
   Collection,
+  HttpMethod,
   Request,
   ResponseData,
   createAppTab,
+  createDefaultRequest,
   generateId,
 } from './types';
 import { vscode } from './vscode';
@@ -22,6 +25,10 @@ export default function App() {
   const [activeTabId, setActiveTabId] = useState<string>(initialTab.id);
 
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+
+  // Keep a ref to activeTabId so message handlers always see the latest value
+  const activeTabIdRef = useRef(activeTabId);
+  useEffect(() => { activeTabIdRef.current = activeTabId; }, [activeTabId]);
 
   const updateTab = useCallback((id: string, partial: Partial<AppTab>) => {
     setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, ...partial } : t)));
@@ -82,6 +89,31 @@ export default function App() {
         case 'LOAD_REQUEST':
           addTab(message.payload as Request);
           break;
+        case 'LOAD_PARSED_REQUEST': {
+          const { method, url, body } = message.payload as {
+            method: string; url: string; body?: string;
+          };
+          addTab({
+            ...createDefaultRequest(),
+            method: method as HttpMethod,
+            url,
+            body: body ?? '',
+            bodyType: body ? 'json' : 'none',
+          });
+          break;
+        }
+        case 'LOAD_BODY': {
+          const { body, bodyType } = message.payload as { body: string; bodyType: string };
+          const tabId = activeTabIdRef.current;
+          setTabs((prev) => prev.map((t) => {
+            if (t.id !== tabId) return t;
+            const method = ['GET', 'HEAD', 'OPTIONS'].includes(t.request.method)
+              ? 'POST'
+              : t.request.method;
+            return { ...t, request: { ...t.request, body, bodyType: bodyType as BodyType, method } };
+          }));
+          break;
+        }
       }
     };
     window.addEventListener('message', handler);

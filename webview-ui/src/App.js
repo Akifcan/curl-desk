@@ -1,10 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { TabBar } from './components/TabBar';
 import { RequestPanel } from './components/RequestPanel/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
-import { createAppTab, generateId, } from './types';
+import { createAppTab, createDefaultRequest, generateId, } from './types';
 import { vscode } from './vscode';
 import './App.css';
 export default function App() {
@@ -13,6 +13,9 @@ export default function App() {
     const [tabs, setTabs] = useState([initialTab]);
     const [activeTabId, setActiveTabId] = useState(initialTab.id);
     const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+    // Keep a ref to activeTabId so message handlers always see the latest value
+    const activeTabIdRef = useRef(activeTabId);
+    useEffect(() => { activeTabIdRef.current = activeTabId; }, [activeTabId]);
     const updateTab = useCallback((id, partial) => {
         setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, ...partial } : t)));
     }, []);
@@ -72,6 +75,30 @@ export default function App() {
                 case 'LOAD_REQUEST':
                     addTab(message.payload);
                     break;
+                case 'LOAD_PARSED_REQUEST': {
+                    const { method, url, body } = message.payload;
+                    addTab({
+                        ...createDefaultRequest(),
+                        method: method,
+                        url,
+                        body: body ?? '',
+                        bodyType: body ? 'json' : 'none',
+                    });
+                    break;
+                }
+                case 'LOAD_BODY': {
+                    const { body, bodyType } = message.payload;
+                    const tabId = activeTabIdRef.current;
+                    setTabs((prev) => prev.map((t) => {
+                        if (t.id !== tabId)
+                            return t;
+                        const method = ['GET', 'HEAD', 'OPTIONS'].includes(t.request.method)
+                            ? 'POST'
+                            : t.request.method;
+                        return { ...t, request: { ...t.request, body, bodyType: bodyType, method } };
+                    }));
+                    break;
+                }
             }
         };
         window.addEventListener('message', handler);

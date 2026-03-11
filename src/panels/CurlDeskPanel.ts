@@ -112,6 +112,16 @@ export class CurlDeskPanel {
     this._panel.webview.postMessage({ type: 'LOAD_REQUEST', payload: request });
   }
 
+  /** Set the body of the currently active tab (called from sendSelection command) */
+  public setBody(body: string, bodyType: string) {
+    this._panel.webview.postMessage({ type: 'LOAD_BODY', payload: { body, bodyType } });
+  }
+
+  /** Open a new tab pre-filled from a parsed API call (method + url + optional body) */
+  public loadParsedRequest(parsed: { method: string; url: string; body?: string }) {
+    this._panel.webview.postMessage({ type: 'LOAD_PARSED_REQUEST', payload: parsed });
+  }
+
   public dispose() {
     CurlDeskPanel.currentPanel = undefined;
     this._panel.dispose();
