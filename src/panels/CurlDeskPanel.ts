@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { executeRequest } from '../utils/httpClient';
+import { parseEnvFile } from '../utils/envParser';
 
 function getNonce(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -98,6 +99,40 @@ export class CurlDeskPanel {
           case 'GET_COLLECTIONS': {
             const collections = this.context.globalState.get('curl-desk:collections', []);
             webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
+            break;
+          }
+          case 'GET_ENVIRONMENTS': {
+            const environments = this.context.globalState.get('curl-desk:environments', []);
+            const activeEnvId = this.context.globalState.get('curl-desk:activeEnvId', null);
+            webview.postMessage({ type: 'ENVIRONMENTS_LOADED', payload: { environments, activeEnvId } });
+            break;
+          }
+          case 'SAVE_ENVIRONMENTS': {
+            const { environments, activeEnvId } = message.payload as { environments: unknown[]; activeEnvId: string | null };
+            await this.context.globalState.update('curl-desk:environments', environments);
+            await this.context.globalState.update('curl-desk:activeEnvId', activeEnvId);
+            break;
+          }
+          case 'SCAN_ENV_FILES': {
+            if (!vscode.workspace.workspaceFolders?.length) {
+              webview.postMessage({ type: 'ENV_FILES_FOUND', payload: [] });
+              break;
+            }
+            const files = await vscode.workspace.findFiles('**/.env*', '**/node_modules/**', 30);
+            const result = files.map(f => ({
+              path: f.fsPath,
+              name: vscode.workspace.asRelativePath(f),
+            }));
+            webview.postMessage({ type: 'ENV_FILES_FOUND', payload: result });
+            break;
+          }
+          case 'READ_ENV_FILE': {
+            const { path: filePath, fileName } = message.payload as { path: string; fileName: string };
+            const uri = vscode.Uri.file(filePath);
+            const bytes = await vscode.workspace.fs.readFile(uri);
+            const content = Buffer.from(bytes).toString('utf8');
+            const variables = parseEnvFile(content);
+            webview.postMessage({ type: 'ENV_FILE_CONTENT', payload: { variables, fileName } });
             break;
           }
         }

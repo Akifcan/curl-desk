@@ -4,11 +4,15 @@ import { Sidebar } from './components/Sidebar/Sidebar';
 import { TabBar } from './components/TabBar';
 import { RequestPanel } from './components/RequestPanel/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
+import { EnvManager } from './components/EnvManager/EnvManager';
 import { createAppTab, createDefaultRequest, generateId, } from './types';
 import { vscode } from './vscode';
 import './App.css';
 export default function App() {
     const [collections, setCollections] = useState([]);
+    const [environments, setEnvironments] = useState([]);
+    const [activeEnvId, setActiveEnvId] = useState(null);
+    const [showEnvManager, setShowEnvManager] = useState(false);
     const initialTab = createAppTab();
     const [tabs, setTabs] = useState([initialTab]);
     const [activeTabId, setActiveTabId] = useState(initialTab.id);
@@ -38,9 +42,10 @@ export default function App() {
             return next;
         });
     }, []);
-    // Load collections on mount
+    // Load collections and environments on mount
     useEffect(() => {
         vscode.postMessage({ type: 'GET_COLLECTIONS' });
+        vscode.postMessage({ type: 'GET_ENVIRONMENTS' });
     }, []);
     // Listen for messages from extension
     useEffect(() => {
@@ -50,6 +55,12 @@ export default function App() {
                 case 'COLLECTIONS_LOADED':
                     setCollections(message.payload);
                     break;
+                case 'ENVIRONMENTS_LOADED': {
+                    const { environments: envs, activeEnvId: id } = message.payload;
+                    setEnvironments(envs);
+                    setActiveEnvId(id);
+                    break;
+                }
                 case 'REQUEST_RESPONSE':
                     if (message.source === 'sidebar')
                         break;
@@ -104,6 +115,22 @@ export default function App() {
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
     }, [updateTab, addTab]);
+    const replaceVars = useCallback((str) => {
+        if (!activeEnvId)
+            return str;
+        const env = environments.find((e) => e.id === activeEnvId);
+        if (!env)
+            return str;
+        return str.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+            const v = env.variables.find((v) => v.key === key.trim());
+            return v ? v.value : `{{${key}}}`;
+        });
+    }, [environments, activeEnvId]);
+    const saveEnvs = useCallback((updatedEnvs, updatedActiveId) => {
+        setEnvironments(updatedEnvs);
+        setActiveEnvId(updatedActiveId);
+        vscode.postMessage({ type: 'SAVE_ENVIRONMENTS', payload: { environments: updatedEnvs, activeEnvId: updatedActiveId } });
+    }, []);
     const saveCollections = useCallback((updated) => {
         setCollections(updated);
         vscode.postMessage({ type: 'SAVE_COLLECTIONS', payload: updated });
@@ -116,7 +143,7 @@ export default function App() {
         const headers = {};
         activeTab.request.headers
             .filter((h) => h.enabled && h.key.trim())
-            .forEach((h) => { headers[h.key] = h.value; });
+            .forEach((h) => { headers[replaceVars(h.key)] = replaceVars(h.value); });
         if (activeTab.request.auth.type === 'bearer' && activeTab.request.auth.token) {
             headers['Authorization'] = `Bearer ${activeTab.request.auth.token}`;
         }
@@ -131,7 +158,7 @@ export default function App() {
         const params = {};
         activeTab.request.params
             .filter((p) => p.enabled && p.key.trim())
-            .forEach((p) => { params[p.key] = p.value; });
+            .forEach((p) => { params[replaceVars(p.key)] = replaceVars(p.value); });
         const isForm = activeTab.request.bodyType === 'form';
         const formFields = isForm
             ? (activeTab.request.formFields ?? []).filter((f) => f.enabled && f.key.trim())
@@ -141,9 +168,9 @@ export default function App() {
             tabId,
             payload: {
                 method: activeTab.request.method,
-                url: activeTab.request.url,
+                url: replaceVars(activeTab.request.url),
                 headers,
-                body: !isForm && activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
+                body: !isForm && activeTab.request.bodyType !== 'none' ? replaceVars(activeTab.request.body) : undefined,
                 formFields,
                 params,
             },
@@ -164,5 +191,6 @@ export default function App() {
         const saved = { ...activeTab.request, id: generateId(), name };
         saveCollections(collections.map((c) => c.id === collectionId ? { ...c, requests: [...c.requests, saved] } : c));
     };
-    return (_jsxs("div", { className: "app", children: [_jsx(Sidebar, { collections: collections, activeRequestId: activeTab.request.id, onSelectRequest: (req) => addTab(req), onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onDeleteRequest: handleDeleteRequest, onNewRequest: () => addTab(), onSaveToCollection: handleSaveToCollection }), _jsxs("div", { className: "main-content", children: [_jsx(TabBar, { tabs: tabs, activeTabId: activeTabId, onSelect: setActiveTabId, onClose: closeTab, onNew: () => addTab() }), _jsx(RequestPanel, { request: activeTab.request, onChange: (req) => updateTab(activeTab.id, { request: req }), onSend: handleSend, isLoading: activeTab.isLoading }), _jsx(ResponsePanel, { response: activeTab.response, error: activeTab.error, isLoading: activeTab.isLoading })] })] }));
+    const activeEnvName = environments.find((e) => e.id === activeEnvId)?.name ?? null;
+    return (_jsxs("div", { className: "app", children: [showEnvManager && (_jsx(EnvManager, { environments: environments, activeEnvId: activeEnvId, onSave: saveEnvs, onClose: () => setShowEnvManager(false) })), _jsx(Sidebar, { collections: collections, activeRequestId: activeTab.request.id, onSelectRequest: (req) => addTab(req), onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onDeleteRequest: handleDeleteRequest, onNewRequest: () => addTab(), onSaveToCollection: handleSaveToCollection }), _jsxs("div", { className: "main-content", children: [_jsx(TabBar, { tabs: tabs, activeTabId: activeTabId, onSelect: setActiveTabId, onClose: closeTab, onNew: () => addTab(), onOpenEnv: () => setShowEnvManager(true), activeEnvName: activeEnvName }), _jsx(RequestPanel, { request: activeTab.request, onChange: (req) => updateTab(activeTab.id, { request: req }), onSend: handleSend, isLoading: activeTab.isLoading }), _jsx(ResponsePanel, { response: activeTab.response, error: activeTab.error, isLoading: activeTab.isLoading })] })] }));
 }

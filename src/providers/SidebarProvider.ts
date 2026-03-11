@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import { CurlDeskPanel } from '../panels/CurlDeskPanel';
-import { executeRequest } from '../utils/httpClient';
+import * as vscode from "vscode";
+import { CurlDeskPanel } from "../panels/CurlDeskPanel";
+import { executeRequest } from "../utils/httpClient";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  public static readonly viewId = 'curl-desk.sidebar';
+  public static readonly viewId = "curl-desk.sidebar";
   private _view?: vscode.WebviewView;
 
   constructor(private readonly context: vscode.ExtensionContext) {}
@@ -19,14 +19,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
-        case 'GET_COLLECTIONS': {
-          const collections = this.context.globalState.get('curl-desk:collections', []);
-          const history = this.context.globalState.get('curl-desk:history', []);
-          webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
-          webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: history });
+        case "GET_COLLECTIONS": {
+          const collections = this.context.globalState.get(
+            "curl-desk:collections",
+            [],
+          );
+          const history = this.context.globalState.get("curl-desk:history", []);
+          webviewView.webview.postMessage({
+            type: "COLLECTIONS_LOADED",
+            payload: collections,
+          });
+          webviewView.webview.postMessage({
+            type: "HISTORY_LOADED",
+            payload: history,
+          });
           break;
         }
-        case 'OPEN_PANEL': {
+        case "OPEN_PANEL": {
           CurlDeskPanel.createOrShow(this.context);
           // Pass selected request to main panel if provided
           if (message.payload) {
@@ -36,16 +45,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           }
           break;
         }
-        case 'DELETE_COLLECTION': {
-          const collections: unknown[] = this.context.globalState.get('curl-desk:collections', []);
-          const updated = (collections as Array<{ id: string }>).filter(
-            (c) => c.id !== message.payload
+        case "DELETE_COLLECTION": {
+          const collections: unknown[] = this.context.globalState.get(
+            "curl-desk:collections",
+            [],
           );
-          await this.context.globalState.update('curl-desk:collections', updated);
-          webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: updated });
+          const updated = (collections as Array<{ id: string }>).filter(
+            (c) => c.id !== message.payload,
+          );
+          await this.context.globalState.update(
+            "curl-desk:collections",
+            updated,
+          );
+          webviewView.webview.postMessage({
+            type: "COLLECTIONS_LOADED",
+            payload: updated,
+          });
           break;
         }
-        case 'SEND_REQUEST': {
+        case "SEND_REQUEST": {
           try {
             const response = await executeRequest(message.payload);
             const historyItem = {
@@ -54,31 +72,56 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
               url: message.payload.url,
               timestamp: Date.now(),
             };
-            const history: unknown[] = this.context.globalState.get('curl-desk:history', []);
+            const history: unknown[] = this.context.globalState.get(
+              "curl-desk:history",
+              [],
+            );
             const updatedHistory = [historyItem, ...history].slice(0, 100);
-            await this.context.globalState.update('curl-desk:history', updatedHistory);
-            webviewView.webview.postMessage({ type: 'REQUEST_RESPONSE', payload: response });
-            webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: updatedHistory });
+            await this.context.globalState.update(
+              "curl-desk:history",
+              updatedHistory,
+            );
+            webviewView.webview.postMessage({
+              type: "REQUEST_RESPONSE",
+              payload: response,
+            });
+            webviewView.webview.postMessage({
+              type: "HISTORY_LOADED",
+              payload: updatedHistory,
+            });
           } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : 'Request failed';
-            webviewView.webview.postMessage({ type: 'REQUEST_ERROR', payload: { message: msg } });
+            const msg = err instanceof Error ? err.message : "Request failed";
+            webviewView.webview.postMessage({
+              type: "REQUEST_ERROR",
+              payload: { message: msg },
+            });
           }
           break;
         }
-        case 'DELETE_REQUEST': {
+        case "DELETE_REQUEST": {
           const { collectionId, requestId } = message.payload as {
             collectionId: string;
             requestId: string;
           };
-          const cols: unknown[] = this.context.globalState.get('curl-desk:collections', []);
-          const updated = (cols as Array<{ id: string; requests: Array<{ id: string }> }>).map(
-            (c) =>
-              c.id === collectionId
-                ? { ...c, requests: c.requests.filter((r) => r.id !== requestId) }
-                : c
+          const cols: unknown[] = this.context.globalState.get(
+            "curl-desk:collections",
+            [],
           );
-          await this.context.globalState.update('curl-desk:collections', updated);
-          webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: updated });
+          const updated = (
+            cols as Array<{ id: string; requests: Array<{ id: string }> }>
+          ).map((c) =>
+            c.id === collectionId
+              ? { ...c, requests: c.requests.filter((r) => r.id !== requestId) }
+              : c,
+          );
+          await this.context.globalState.update(
+            "curl-desk:collections",
+            updated,
+          );
+          webviewView.webview.postMessage({
+            type: "COLLECTIONS_LOADED",
+            payload: updated,
+          });
           break;
         }
       }
@@ -87,10 +130,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     // Refresh when panel becomes visible
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
-        const collections = this.context.globalState.get('curl-desk:collections', []);
-        const history = this.context.globalState.get('curl-desk:history', []);
-        webviewView.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
-        webviewView.webview.postMessage({ type: 'HISTORY_LOADED', payload: history });
+        const collections = this.context.globalState.get(
+          "curl-desk:collections",
+          [],
+        );
+        const history = this.context.globalState.get("curl-desk:history", []);
+        webviewView.webview.postMessage({
+          type: "COLLECTIONS_LOADED",
+          payload: collections,
+        });
+        webviewView.webview.postMessage({
+          type: "HISTORY_LOADED",
+          payload: history,
+        });
       }
     });
   }
@@ -98,8 +150,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   /** Called by main panel when collections change, to keep sidebar in sync */
   public refresh() {
     if (this._view?.visible) {
-      const collections = this.context.globalState.get('curl-desk:collections', []);
-      this._view.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
+      const collections = this.context.globalState.get(
+        "curl-desk:collections",
+        [],
+      );
+      this._view.webview.postMessage({
+        type: "COLLECTIONS_LOADED",
+        payload: collections,
+      });
     }
   }
 
@@ -356,7 +414,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
 <div class="top-section">
-  <button class="open-btn" onclick="openPanel()">⚡ Open Curl Desk</button>
+  <button class="open-btn" onclick="openPanel()">Open Curl Desk</button>
 </div>
 
 <div class="quick-section">

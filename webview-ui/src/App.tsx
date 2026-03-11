@@ -3,10 +3,12 @@ import { Sidebar } from './components/Sidebar/Sidebar';
 import { TabBar } from './components/TabBar';
 import { RequestPanel } from './components/RequestPanel/RequestPanel';
 import { ResponsePanel } from './components/ResponsePanel/ResponsePanel';
+import { EnvManager } from './components/EnvManager/EnvManager';
 import {
   AppTab,
   BodyType,
   Collection,
+  Environment,
   HttpMethod,
   Request,
   ResponseData,
@@ -19,6 +21,9 @@ import './App.css';
 
 export default function App() {
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [activeEnvId, setActiveEnvId] = useState<string | null>(null);
+  const [showEnvManager, setShowEnvManager] = useState(false);
 
   const initialTab = createAppTab();
   const [tabs, setTabs] = useState<AppTab[]>([initialTab]);
@@ -53,9 +58,10 @@ export default function App() {
     });
   }, []);
 
-  // Load collections on mount
+  // Load collections and environments on mount
   useEffect(() => {
     vscode.postMessage({ type: 'GET_COLLECTIONS' });
+    vscode.postMessage({ type: 'GET_ENVIRONMENTS' });
   }, []);
 
   // Listen for messages from extension
@@ -66,6 +72,12 @@ export default function App() {
         case 'COLLECTIONS_LOADED':
           setCollections(message.payload as Collection[]);
           break;
+        case 'ENVIRONMENTS_LOADED': {
+          const { environments: envs, activeEnvId: id } = message.payload as { environments: Environment[]; activeEnvId: string | null };
+          setEnvironments(envs);
+          setActiveEnvId(id);
+          break;
+        }
         case 'REQUEST_RESPONSE':
           if (message.source === 'sidebar') break;
           if (message.tabId) {
@@ -120,6 +132,22 @@ export default function App() {
     return () => window.removeEventListener('message', handler);
   }, [updateTab, addTab]);
 
+  const replaceVars = useCallback((str: string): string => {
+    if (!activeEnvId) return str;
+    const env = environments.find((e) => e.id === activeEnvId);
+    if (!env) return str;
+    return str.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+      const v = env.variables.find((v) => v.key === key.trim());
+      return v ? v.value : `{{${key}}}`;
+    });
+  }, [environments, activeEnvId]);
+
+  const saveEnvs = useCallback((updatedEnvs: Environment[], updatedActiveId: string | null) => {
+    setEnvironments(updatedEnvs);
+    setActiveEnvId(updatedActiveId);
+    vscode.postMessage({ type: 'SAVE_ENVIRONMENTS', payload: { environments: updatedEnvs, activeEnvId: updatedActiveId } });
+  }, []);
+
   const saveCollections = useCallback((updated: Collection[]) => {
     setCollections(updated);
     vscode.postMessage({ type: 'SAVE_COLLECTIONS', payload: updated });
@@ -134,7 +162,7 @@ export default function App() {
     const headers: Record<string, string> = {};
     activeTab.request.headers
       .filter((h) => h.enabled && h.key.trim())
-      .forEach((h) => { headers[h.key] = h.value; });
+      .forEach((h) => { headers[replaceVars(h.key)] = replaceVars(h.value); });
 
     if (activeTab.request.auth.type === 'bearer' && activeTab.request.auth.token) {
       headers['Authorization'] = `Bearer ${activeTab.request.auth.token}`;
@@ -151,7 +179,7 @@ export default function App() {
     const params: Record<string, string> = {};
     activeTab.request.params
       .filter((p) => p.enabled && p.key.trim())
-      .forEach((p) => { params[p.key] = p.value; });
+      .forEach((p) => { params[replaceVars(p.key)] = replaceVars(p.value); });
 
     const isForm = activeTab.request.bodyType === 'form';
     const formFields = isForm
@@ -163,9 +191,9 @@ export default function App() {
       tabId,
       payload: {
         method: activeTab.request.method,
-        url: activeTab.request.url,
+        url: replaceVars(activeTab.request.url),
         headers,
-        body: !isForm && activeTab.request.bodyType !== 'none' ? activeTab.request.body : undefined,
+        body: !isForm && activeTab.request.bodyType !== 'none' ? replaceVars(activeTab.request.body) : undefined,
         formFields,
         params,
       },
@@ -199,8 +227,18 @@ export default function App() {
     );
   };
 
+  const activeEnvName = environments.find((e) => e.id === activeEnvId)?.name ?? null;
+
   return (
     <div className="app">
+      {showEnvManager && (
+        <EnvManager
+          environments={environments}
+          activeEnvId={activeEnvId}
+          onSave={saveEnvs}
+          onClose={() => setShowEnvManager(false)}
+        />
+      )}
       <Sidebar
         collections={collections}
         activeRequestId={activeTab.request.id}
@@ -218,6 +256,8 @@ export default function App() {
           onSelect={setActiveTabId}
           onClose={closeTab}
           onNew={() => addTab()}
+          onOpenEnv={() => setShowEnvManager(true)}
+          activeEnvName={activeEnvName}
         />
         <RequestPanel
           request={activeTab.request}

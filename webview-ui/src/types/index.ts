@@ -76,6 +76,22 @@ export function createFormField(): FormField {
   return { id: generateId(), key: '', value: '', type: 'text', enabled: true };
 }
 
+export interface EnvVariable {
+  id: string;
+  key: string;
+  value: string;
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  variables: EnvVariable[];
+}
+
+export function createEnvVariable(): EnvVariable {
+  return { id: generateId(), key: '', value: '' };
+}
+
 export function createAppTab(request?: Request): AppTab {
   return {
     id: generateId(),

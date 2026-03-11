@@ -7,6 +7,9 @@ export function createKeyValue() {
 export function createFormField() {
     return { id: generateId(), key: '', value: '', type: 'text', enabled: true };
 }
+export function createEnvVariable() {
+    return { id: generateId(), key: '', value: '' };
+}
 export function createAppTab(request) {
     return {
         id: generateId(),

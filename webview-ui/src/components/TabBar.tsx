@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Layers } from 'lucide-react';
 import { AppTab, METHOD_COLORS } from '../types';
 
 interface TabBarProps {
@@ -7,6 +7,8 @@ interface TabBarProps {
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
+  onOpenEnv: () => void;
+  activeEnvName: string | null;
 }
 
 function getTabLabel(tab: AppTab): string {
@@ -24,7 +26,7 @@ function getTabLabel(tab: AppTab): string {
   return 'New Request';
 }
 
-export function TabBar({ tabs, activeTabId, onSelect, onClose, onNew }: TabBarProps) {
+export function TabBar({ tabs, activeTabId, onSelect, onClose, onNew, onOpenEnv, activeEnvName }: TabBarProps) {
   return (
     <div className="tab-bar">
       <div className="tab-bar-list">
@@ -62,6 +64,14 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose, onNew }: TabBarPr
       </div>
       <button className="tab-bar-new" onClick={onNew} title="New tab">
         <Plus size={13} strokeWidth={2.5} />
+      </button>
+      <button
+        className={`tab-bar-env ${activeEnvName ? 'active' : ''}`}
+        onClick={onOpenEnv}
+        title="Manage environments"
+      >
+        <Layers size={12} strokeWidth={2} />
+        {activeEnvName ? activeEnvName : 'No Env'}
       </button>
     </div>
   );
