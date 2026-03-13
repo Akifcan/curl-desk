@@ -1,8 +1,11 @@
+import { useState, useEffect } from 'react';
+
 type ViewMode = 'pretty' | 'raw';
 
 interface ResponseBodyProps {
   body: string;
   viewMode: ViewMode;
+  contentType: string;
 }
 
 function escapeHtml(str: string): string {
@@ -40,13 +43,11 @@ function highlightXml(text: string): string {
 function detectAndHighlight(body: string, mode: ViewMode): string {
   if (mode === 'raw') return escapeHtml(body);
 
-  // Try JSON
   try {
     const formatted = JSON.stringify(JSON.parse(body), null, 2);
     return highlightJson(formatted);
   } catch { /* not JSON */ }
 
-  // Try HTML/XML
   if (/^\s*</.test(body)) {
     return highlightXml(body);
   }
@@ -54,10 +55,43 @@ function detectAndHighlight(body: string, mode: ViewMode): string {
   return escapeHtml(body);
 }
 
-export function ResponseBody({ body, viewMode }: ResponseBodyProps) {
-  const highlighted = detectAndHighlight(body, viewMode);
-  const lines = highlighted.split('\n');
+function getMediaType(contentType: string): 'image' | 'video' | 'audio' | 'pdf' | null {
+  if (/^image\//.test(contentType)) return 'image';
+  if (/^video\//.test(contentType)) return 'video';
+  if (/^audio\//.test(contentType)) return 'audio';
+  if (/application\/pdf/.test(contentType)) return 'pdf';
+  return null;
+}
 
+function dataUriToBlob(dataUri: string): Blob {
+  const parts = dataUri.split(',');
+  const mime = parts[0].split(':')[1].split(';')[0];
+  const raw = atob(parts[1]);
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function PdfViewer({ dataUri }: { dataUri: string }) {
+  const [url, setUrl] = useState('');
+
+  useEffect(() => {
+    const blob = dataUriToBlob(dataUri);
+    const blobUrl = URL.createObjectURL(blob);
+    setUrl(blobUrl);
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [dataUri]);
+
+  if (!url) return null;
+  return (
+    <div className="response-media">
+      <iframe src={url} className="response-pdf" title="PDF Response" />
+    </div>
+  );
+}
+
+function CodeView({ highlighted }: { highlighted: string }) {
+  const lines = highlighted.split('\n');
   return (
     <div className="response-body-editor">
       <div className="line-gutter" aria-hidden>
@@ -70,4 +104,39 @@ export function ResponseBody({ body, viewMode }: ResponseBodyProps) {
       </pre>
     </div>
   );
+}
+
+export function ResponseBody({ body, viewMode, contentType }: ResponseBodyProps) {
+  const mediaType = getMediaType(contentType);
+
+  if (mediaType === 'image') {
+    return (
+      <div className="response-media">
+        <img src={body} alt="Response" className="response-image" />
+      </div>
+    );
+  }
+
+  if (mediaType === 'video') {
+    return (
+      <div className="response-media">
+        <video src={body} controls className="response-video" />
+      </div>
+    );
+  }
+
+  if (mediaType === 'audio') {
+    return (
+      <div className="response-media">
+        <audio src={body} controls className="response-audio" />
+      </div>
+    );
+  }
+
+  if (mediaType === 'pdf') {
+    return <PdfViewer dataUri={body} />;
+  }
+
+  const highlighted = detectAndHighlight(body, viewMode);
+  return <CodeView highlighted={highlighted} />;
 }

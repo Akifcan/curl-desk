@@ -27,6 +27,7 @@ export interface ResponseData {
   body: string;
   time: number;
   size: number;
+  contentType: string;
 }
 
 function buildMultipart(fields: FormField[]): { buffer: Buffer; boundary: string } {
@@ -106,7 +107,6 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
       res.on('data', (chunk: Buffer) => chunks.push(chunk));
       res.on('end', () => {
         const buffer = Buffer.concat(chunks);
-        const body = buffer.toString('utf8');
         const time = Date.now() - startTime;
         const size = buffer.byteLength;
 
@@ -117,6 +117,16 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
           }
         });
 
+        const contentType = responseHeaders['content-type'] ?? '';
+        const isBinary = /^(image|video|audio|application\/octet-stream|application\/pdf)/.test(contentType);
+        let body: string;
+        if (isBinary) {
+          const mime = contentType.split(';')[0].trim();
+          body = `data:${mime};base64,${buffer.toString('base64')}`;
+        } else {
+          body = buffer.toString('utf8');
+        }
+
         resolve({
           status: res.statusCode ?? 0,
           statusText: res.statusMessage ?? '',
@@ -124,6 +134,7 @@ export function executeRequest(config: RequestConfig): Promise<ResponseData> {
           body,
           time,
           size,
+          contentType,
         });
       });
     });

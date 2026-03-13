@@ -67,7 +67,7 @@ export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps
           </div>
 
           <div className="response-content">
-            {activeTab === 'body' && <ResponseBody body={response.body} viewMode={viewMode} />}
+            {activeTab === 'body' && <ResponseBody body={response.body} viewMode={viewMode} contentType={response.contentType ?? ''} />}
             {activeTab === 'headers' && <ResponseHeaders headers={response.headers} />}
           </div>
         </>

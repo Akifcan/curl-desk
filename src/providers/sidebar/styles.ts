@@ -197,6 +197,11 @@ export function sidebarStyles(): string {
   .syn-bool { color: #569cd6; }
   .syn-null { color: #569cd6; font-style: italic; }
 
+  .sb-media { display: flex; align-items: center; justify-content: center; padding: 8px; overflow: auto; }
+  .sb-media-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; background: repeating-conic-gradient(#3e4451 0% 25%, transparent 0% 50%) 50% / 12px 12px; }
+  .sb-media-video { max-width: 100%; max-height: 100%; border-radius: 4px; }
+  .sb-media-audio { width: 100%; }
+
   .spinner {
     display: inline-block; width: 11px; height: 11px;
     border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;

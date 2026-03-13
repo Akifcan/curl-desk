@@ -70,6 +70,19 @@ export function scriptRequestHandler(): string {
     });
   }
 
+  function renderMediaBody(contentType, body) {
+    if (/^image\\//.test(contentType)) {
+      return '<div class="sb-media"><img src="' + body + '" alt="Response" class="sb-media-img" /></div>';
+    }
+    if (/^video\\//.test(contentType)) {
+      return '<div class="sb-media"><video src="' + body + '" controls class="sb-media-video"></video></div>';
+    }
+    if (/^audio\\//.test(contentType)) {
+      return '<div class="sb-media"><audio src="' + body + '" controls class="sb-media-audio"></audio></div>';
+    }
+    return null;
+  }
+
   function renderQrResponse(type, payload) {
     const el = document.getElementById('qr-response');
     const sendBtn = document.getElementById('qr-send-btn');
@@ -82,16 +95,24 @@ export function scriptRequestHandler(): string {
       return;
     }
     const statusColor = payload.status < 300 ? '#98c379' : payload.status < 400 ? '#e5c07b' : '#e06c75';
-    const formatted = formatBodyText(payload.body);
-    const highlighted = highlightJsonStr(formatted);
-
-    el.innerHTML = \`
+    const statusBar = \`
       <div class="qr-resp-bar">
         <span class="qr-resp-status" style="color:\${statusColor}">\${payload.status} \${escHtml(payload.statusText)}</span>
         <span class="qr-resp-meta">\${payload.time}ms</span>
         <span class="qr-resp-meta">\${(payload.size / 1024).toFixed(1)}KB</span>
       </div>
-    \` + renderCodeWithLines(highlighted);
+    \`;
+
+    const ct = payload.contentType || '';
+    const media = renderMediaBody(ct, payload.body);
+    if (media) {
+      el.innerHTML = statusBar + media;
+      return;
+    }
+
+    const formatted = formatBodyText(payload.body);
+    const highlighted = highlightJsonStr(formatted);
+    el.innerHTML = statusBar + renderCodeWithLines(highlighted);
   }
 `;
 }

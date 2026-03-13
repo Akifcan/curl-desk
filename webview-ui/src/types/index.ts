@@ -54,6 +54,7 @@ export interface ResponseData {
   body: string;
   time: number;
   size: number;
+  contentType: string;
 }
 
 export interface AppTab {

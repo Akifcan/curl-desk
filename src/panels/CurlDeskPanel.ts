@@ -45,7 +45,10 @@ export class CurlDeskPanel {
     this._onCollectionsChanged = onCollectionsChanged;
     this._panel = panel;
 
-    this._panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.png');
+    this._panel.iconPath = {
+      light: vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.svg'),
+      dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.svg'),
+    };
     this._update();
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -68,7 +71,7 @@ export class CurlDeskPanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource};">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; img-src data:; media-src data: blob:; frame-src blob: data:;">
   <title>Curl Desk</title>
 </head>
 <body>
