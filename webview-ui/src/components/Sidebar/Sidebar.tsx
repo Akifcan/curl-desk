@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, Check, Zap } from 'lucide-react';
-import { Collection, Request } from '../../types';
+import { Collection, Request, ResponseData } from '../../types';
 import { CollectionItem } from './CollectionItem';
 import './Sidebar.css';
 
@@ -15,6 +15,8 @@ interface SidebarProps {
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onNewRequest: () => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
+  onDeleteExample: (collectionId: string, requestId: string, exampleId: string) => void;
+  onLoadExample: (response: ResponseData) => void;
 }
 
 export function Sidebar({
@@ -28,6 +30,8 @@ export function Sidebar({
   onDeleteRequest,
   onNewRequest,
   onSaveToCollection,
+  onDeleteExample,
+  onLoadExample,
 }: SidebarProps) {
   const [addingCollection, setAddingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
@@ -105,6 +109,8 @@ export function Sidebar({
             onRenameRequest={onRenameRequest}
             onDeleteRequest={onDeleteRequest}
             onSaveToCollection={onSaveToCollection}
+            onDeleteExample={onDeleteExample}
+            onLoadExample={onLoadExample}
           />
         ))}
       </div>

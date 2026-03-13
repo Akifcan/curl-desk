@@ -354,3 +354,42 @@
   color: #ce9178;
   word-break: break-all;
 }
+
+/* Save as Example */
+.save-example-area {
+  margin-left: auto;
+}
+
+.save-example-btn {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground, #636d83);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.save-example-btn:hover {
+  color: var(--vscode-editor-foreground, #abb2bf);
+}
+
+.save-example-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.save-example-input input {
+  background: var(--vscode-input-background, #1d2026);
+  color: var(--vscode-input-foreground, #abb2bf);
+  border: 1.5px solid var(--vscode-input-border, #3e4451);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  outline: none;
+  width: 140px;
+}
+
+.save-example-input input:focus {
+  border-color: var(--vscode-focusBorder, #528bff);
+}

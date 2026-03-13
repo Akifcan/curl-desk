@@ -39,6 +39,7 @@ export interface Request {
   bodyType: BodyType;
   formFields?: FormField[];
   auth: Auth;
+  examples?: Example[];
 }
 
 export interface Collection {
@@ -55,6 +56,12 @@ export interface ResponseData {
   time: number;
   size: number;
   contentType: string;
+}
+
+export interface Example {
+  id: string;
+  name: string;
+  response: ResponseData;
 }
 
 export interface AppTab {

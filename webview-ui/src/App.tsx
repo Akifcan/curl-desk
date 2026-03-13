@@ -9,6 +9,7 @@ import {
   BodyType,
   Collection,
   Environment,
+  Example,
   HttpMethod,
   Request,
   ResponseData,
@@ -232,6 +233,36 @@ export default function App() {
     );
   };
 
+  const handleSaveExample = (collectionId: string, requestId: string, name: string) => {
+    if (!activeTab.response) return;
+    const example: Example = { id: generateId(), name, response: activeTab.response };
+    saveCollections(
+      collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, requests: c.requests.map((r) =>
+              r.id === requestId
+                ? { ...r, examples: [...(r.examples ?? []), example] }
+                : r
+            ) }
+          : c
+      )
+    );
+  };
+
+  const handleDeleteExample = (collectionId: string, requestId: string, exampleId: string) => {
+    saveCollections(
+      collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, requests: c.requests.map((r) =>
+              r.id === requestId
+                ? { ...r, examples: (r.examples ?? []).filter((e) => e.id !== exampleId) }
+                : r
+            ) }
+          : c
+      )
+    );
+  };
+
   const handleSaveToCollection = (collectionId: string, name: string) => {
     const saved: Request = { ...activeTab.request, id: generateId(), name };
     saveCollections(
@@ -264,6 +295,8 @@ export default function App() {
         onDeleteRequest={handleDeleteRequest}
         onNewRequest={() => addTab()}
         onSaveToCollection={handleSaveToCollection}
+        onDeleteExample={handleDeleteExample}
+        onLoadExample={(resp) => updateTab(activeTab.id, { response: resp })}
       />
       <div className="main-content">
         <TabBar
@@ -286,6 +319,9 @@ export default function App() {
           response={activeTab.response}
           error={activeTab.error}
           isLoading={activeTab.isLoading}
+          collections={collections}
+          activeRequestId={activeTab.request.id}
+          onSaveExample={handleSaveExample}
         />
       </div>
     </div>

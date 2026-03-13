@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ResponseData } from '../../types';
+import { Save, Check, X } from 'lucide-react';
+import { Collection, ResponseData } from '../../types';
 import { ResponseStatusBar } from './ResponseStatusBar';
 import { ResponseBody } from './ResponseBody';
 import { ResponseHeaders } from './ResponseHeaders';
@@ -12,6 +13,9 @@ interface ResponsePanelProps {
   response: ResponseData | null;
   error: string | null;
   isLoading: boolean;
+  collections: Collection[];
+  activeRequestId: string;
+  onSaveExample: (collectionId: string, requestId: string, name: string) => void;
 }
 
 function isJson(body: string): boolean {
@@ -28,10 +32,23 @@ function isHtml(body: string, contentType: string): boolean {
   return /^\s*<!doctype\s+html/i.test(body) || /^\s*<html/i.test(body);
 }
 
-export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps) {
+export function ResponsePanel({ response, error, isLoading, collections, activeRequestId, onSaveExample }: ResponsePanelProps) {
   const [activeTab, setActiveTab] = useState<ResponseTab>('body');
   const [viewMode, setViewMode] = useState<ViewMode>('pretty');
   const [htmlPreview, setHtmlPreview] = useState(false);
+  const [savingExample, setSavingExample] = useState(false);
+  const [exampleName, setExampleName] = useState('');
+
+  // Find which collection contains the active request
+  const parentCollection = collections.find((c) => c.requests.some((r) => r.id === activeRequestId));
+
+  const handleSaveExample = () => {
+    if (exampleName.trim() && parentCollection) {
+      onSaveExample(parentCollection.id, activeRequestId, exampleName.trim());
+      setSavingExample(false);
+      setExampleName('');
+    }
+  };
 
   return (
     <div className="response-panel">
@@ -85,6 +102,36 @@ export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps
                 >
                   Preview
                 </button>
+              </div>
+            )}
+
+            {parentCollection && (
+              <div className="save-example-area">
+                {savingExample ? (
+                  <div className="save-example-input">
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Example name..."
+                      value={exampleName}
+                      onChange={(e) => setExampleName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveExample();
+                        if (e.key === 'Escape') { setSavingExample(false); setExampleName(''); }
+                      }}
+                    />
+                    <button className="btn btn-primary btn-sm btn-icon" onClick={handleSaveExample}>
+                      <Check size={12} strokeWidth={2.5} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setSavingExample(false); setExampleName(''); }}>
+                      <X size={12} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn btn-ghost btn-sm save-example-btn" onClick={() => setSavingExample(true)}>
+                    <Save size={11} strokeWidth={2} /> Save as Example
+                  </button>
+                )}
               </div>
             )}
           </div>
