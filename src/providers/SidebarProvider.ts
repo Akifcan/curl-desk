@@ -347,14 +347,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   .auth-select:focus, .auth-input:focus { border-color: var(--vscode-focusBorder); }
   .auth-input::placeholder { color: var(--vscode-input-placeholderForeground); }
 
-  .qr-response { border-top: 1px solid var(--vscode-panel-border); display: none; }
+  .qr-response { border-top: 1px solid var(--vscode-panel-border); min-height: 80px; max-height: 160px; overflow-y: auto; }
+  .qr-resize-handle {
+    height: 5px; cursor: ns-resize; background: transparent;
+    position: relative; flex-shrink: 0;
+  }
+  .qr-resize-handle:hover, .qr-resize-handle.active { background: var(--vscode-focusBorder); height: 3px; }
   .qr-resp-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-sideBar-background)); }
   .qr-resp-status { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
   .qr-resp-meta { font-size: 11px; color: var(--vscode-descriptionForeground); font-weight: 500; }
   .qr-resp-body {
     margin: 0; padding: 7px 10px; font-size: 12px;
     font-family: var(--vscode-editor-font-family, monospace);
-    max-height: 120px; overflow-y: auto;
+    overflow-y: auto;
     white-space: pre-wrap; word-break: break-all; line-height: 1.6;
   }
   .qr-resp-error { padding: 7px 10px; font-size: 12px; color: #e06c75; word-break: break-word; }
@@ -479,6 +484,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <button class="qr-tab" id="qrtab-auth" onclick="switchQrTab('auth')">Auth</button>
   </div>
   <div class="qr-tab-content" id="qr-tab-content"></div>
+  <div class="qr-resize-handle" id="qr-resize-handle"></div>
   <div class="qr-response" id="qr-response"></div>
 </div>
 
@@ -728,7 +734,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   function renderQrResponse(type, payload) {
     const el = document.getElementById('qr-response');
-    el.style.display = 'block';
     const sendBtn = document.getElementById('qr-send-btn');
     sendBtn.disabled = false;
     sendBtn.innerHTML = '&#9654;';
@@ -748,6 +753,39 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       <pre class="qr-resp-body">\${escHtml(payload.body)}</pre>
     \`;
   }
+
+  // Resize handle for response area
+  (function() {
+    const handle = document.getElementById('qr-resize-handle');
+    const respEl = document.getElementById('qr-response');
+    let startY = 0, startH = 0, dragging = false;
+
+    handle.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startH = respEl.offsetHeight;
+      handle.classList.add('active');
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const delta = e.clientY - startY;
+      const newH = Math.max(80, Math.min(startH + delta, window.innerHeight * 0.7));
+      respEl.style.minHeight = newH + 'px';
+      respEl.style.maxHeight = newH + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove('active');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  })();
 
   // Initialize quick request panel
   document.getElementById('qr-method').style.color = METHOD_COLORS['GET'];
