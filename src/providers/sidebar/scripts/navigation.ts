@@ -65,6 +65,33 @@ export function scriptNavigation(): string {
     vscode.postMessage({ type: 'DELETE_REQUEST', payload: { collectionId, requestId } });
   }
 
+  function startRenameRequest(collectionId, requestId) {
+    const col = collections.find(c => c.id === collectionId);
+    if (!col) return;
+    const req = col.requests.find(r => r.id === requestId);
+    if (!req) return;
+    const nameEl = document.getElementById('req-name-' + requestId);
+    if (!nameEl) return;
+    const oldName = req.name || req.url || 'Untitled';
+    nameEl.innerHTML = '<input class="col-rename-input" type="text" value="' + escHtml(req.name || '') + '" placeholder="Request name" onclick="event.stopPropagation()" />';
+    const input = nameEl.querySelector('input');
+    input.focus();
+    input.select();
+    const commit = () => {
+      const val = input.value.trim();
+      if (val && val !== req.name) {
+        vscode.postMessage({ type: 'RENAME_REQUEST', payload: { collectionId, requestId, name: val } });
+      } else {
+        nameEl.textContent = oldName;
+      }
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { nameEl.textContent = oldName; }
+    });
+    input.addEventListener('blur', commit);
+  }
+
   function switchTab(tab) {
     activeTab = tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

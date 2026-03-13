@@ -8,6 +8,7 @@ interface CollectionItemProps {
   onSelectRequest: (req: Request) => void;
   onDeleteCollection: (id: string) => void;
   onRenameCollection: (id: string, name: string) => void;
+  onRenameRequest: (collectionId: string, requestId: string, name: string) => void;
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
 }
@@ -18,6 +19,7 @@ export function CollectionItem({
   onSelectRequest,
   onDeleteCollection,
   onRenameCollection,
+  onRenameRequest,
   onDeleteRequest,
   onSaveToCollection,
 }: CollectionItemProps) {
@@ -25,6 +27,8 @@ export function CollectionItem({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
+  const [editingReqId, setEditingReqId] = useState<string | null>(null);
+  const [editReqName, setEditReqName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveName, setSaveName] = useState('');
 
@@ -41,6 +45,13 @@ export function CollectionItem({
       onRenameCollection(col.id, editName.trim());
     }
     setEditing(false);
+  };
+
+  const handleRenameRequest = () => {
+    if (editingReqId && editReqName.trim()) {
+      onRenameRequest(col.id, editingReqId, editReqName.trim());
+    }
+    setEditingReqId(null);
   };
 
   return (
@@ -118,19 +129,51 @@ export function CollectionItem({
             <div
               key={req.id}
               className={`request-item ${activeRequestId === req.id ? 'active' : ''}`}
-              onClick={() => onSelectRequest(req)}
+              onClick={() => editingReqId !== req.id && onSelectRequest(req)}
             >
               <span className="request-method" style={{ color: METHOD_COLORS[req.method] }}>
                 {req.method}
               </span>
-              <span className="request-name">{req.name || req.url || 'Untitled'}</span>
-              <button
-                className="icon-btn delete-btn"
-                onClick={(e) => { e.stopPropagation(); onDeleteRequest(col.id, req.id); }}
-                title="Delete request"
-              >
-                <X size={11} strokeWidth={2.5} />
-              </button>
+              {editingReqId === req.id ? (
+                <input
+                  autoFocus
+                  className="request-edit-input"
+                  type="text"
+                  value={editReqName}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setEditReqName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleRenameRequest();
+                    if (e.key === 'Escape') setEditingReqId(null);
+                  }}
+                  onBlur={handleRenameRequest}
+                />
+              ) : (
+                <span
+                  className="request-name"
+                  onDoubleClick={(e) => { e.stopPropagation(); setEditingReqId(req.id); setEditReqName(req.name || ''); }}
+                >
+                  {req.name || req.url || 'Untitled'}
+                </span>
+              )}
+              {editingReqId !== req.id && (
+                <span className="request-actions">
+                  <button
+                    className="icon-btn"
+                    onClick={(e) => { e.stopPropagation(); setEditingReqId(req.id); setEditReqName(req.name || ''); }}
+                    title="Rename request"
+                  >
+                    <Pencil size={10} strokeWidth={2.5} />
+                  </button>
+                  <button
+                    className="icon-btn delete-btn"
+                    onClick={(e) => { e.stopPropagation(); onDeleteRequest(col.id, req.id); }}
+                    title="Delete request"
+                  >
+                    <X size={11} strokeWidth={2.5} />
+                  </button>
+                </span>
+              )}
             </div>
           ))}
 

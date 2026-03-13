@@ -11,8 +11,9 @@ export class CurlDeskPanel {
   public static currentPanel: CurlDeskPanel | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
+  private _onCollectionsChanged?: () => void;
 
-  public static createOrShow(context: vscode.ExtensionContext) {
+  public static createOrShow(context: vscode.ExtensionContext, onCollectionsChanged?: () => void) {
     const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
 
     if (CurlDeskPanel.currentPanel) {
@@ -33,13 +34,15 @@ export class CurlDeskPanel {
       }
     );
 
-    CurlDeskPanel.currentPanel = new CurlDeskPanel(panel, context);
+    CurlDeskPanel.currentPanel = new CurlDeskPanel(panel, context, onCollectionsChanged);
   }
 
   private constructor(
     panel: vscode.WebviewPanel,
-    private readonly context: vscode.ExtensionContext
+    private readonly context: vscode.ExtensionContext,
+    onCollectionsChanged?: () => void,
   ) {
+    this._onCollectionsChanged = onCollectionsChanged;
     this._panel = panel;
 
     this._panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.png');
@@ -91,6 +94,7 @@ export class CurlDeskPanel {
           }
           case 'SAVE_COLLECTIONS': {
             await this.context.globalState.update('curl-desk:collections', message.payload);
+            this._onCollectionsChanged?.();
             break;
           }
           case 'GET_COLLECTIONS': {
@@ -137,6 +141,12 @@ export class CurlDeskPanel {
       undefined,
       this._disposables
     );
+  }
+
+  /** Refresh collections in the main panel (called when sidebar modifies collections) */
+  public refreshCollections() {
+    const collections = this.context.globalState.get('curl-desk:collections', []);
+    this._panel.webview.postMessage({ type: 'COLLECTIONS_LOADED', payload: collections });
   }
 
   /** Load a specific request into the webview (called from sidebar) */

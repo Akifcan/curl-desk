@@ -11,9 +11,10 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Register open command
+  const refreshSidebar = () => sidebarProvider.refresh();
   context.subscriptions.push(
     vscode.commands.registerCommand('curl-desk.open', () => {
-      CurlDeskPanel.createOrShow(context);
+      CurlDeskPanel.createOrShow(context, refreshSidebar);
     })
   );
 
@@ -28,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       const text = editor.document.getText(editor.selection);
       const wasOpen = !!CurlDeskPanel.currentPanel;
-      CurlDeskPanel.createOrShow(context);
+      CurlDeskPanel.createOrShow(context, refreshSidebar);
 
       const parsed = parseApiCall(text);
 

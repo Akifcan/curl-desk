@@ -11,6 +11,7 @@ interface SidebarProps {
   onAddCollection: (name: string) => void;
   onDeleteCollection: (id: string) => void;
   onRenameCollection: (id: string, name: string) => void;
+  onRenameRequest: (collectionId: string, requestId: string, name: string) => void;
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onNewRequest: () => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
@@ -23,6 +24,7 @@ export function Sidebar({
   onAddCollection,
   onDeleteCollection,
   onRenameCollection,
+  onRenameRequest,
   onDeleteRequest,
   onNewRequest,
   onSaveToCollection,
@@ -100,6 +102,7 @@ export function Sidebar({
             onSelectRequest={onSelectRequest}
             onDeleteCollection={onDeleteCollection}
             onRenameCollection={onRenameCollection}
+            onRenameRequest={onRenameRequest}
             onDeleteRequest={onDeleteRequest}
             onSaveToCollection={onSaveToCollection}
           />

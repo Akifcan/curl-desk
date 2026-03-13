@@ -212,6 +212,16 @@ export default function App() {
     saveCollections(collections.map((c) => c.id === id ? { ...c, name } : c));
   };
 
+  const handleRenameRequest = (collectionId: string, requestId: string, name: string) => {
+    saveCollections(
+      collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, requests: c.requests.map((r) => r.id === requestId ? { ...r, name } : r) }
+          : c
+      )
+    );
+  };
+
   const handleDeleteRequest = (collectionId: string, requestId: string) => {
     saveCollections(
       collections.map((c) =>
@@ -250,6 +260,7 @@ export default function App() {
         onAddCollection={handleAddCollection}
         onDeleteCollection={handleDeleteCollection}
         onRenameCollection={handleRenameCollection}
+        onRenameRequest={handleRenameRequest}
         onDeleteRequest={handleDeleteRequest}
         onNewRequest={() => addTab()}
         onSaveToCollection={handleSaveToCollection}

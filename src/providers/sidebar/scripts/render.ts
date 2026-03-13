@@ -57,7 +57,8 @@ export function scriptRender(): string {
               : col.requests.map(req => \`
                 <div class="request-row" onclick='openPanel(\${JSON.stringify(req).replace(/'/g, "&#39;")})'>
                   <span class="method" style="color:\${METHOD_COLORS[req.method] || '#abb2bf'}">\${req.method}</span>
-                  <span class="req-name">\${req.name || req.url || 'Untitled'}</span>
+                  <span class="req-name" id="req-name-\${req.id}" ondblclick="event.stopPropagation(); startRenameRequest('\${col.id}', '\${req.id}')">\${req.name || req.url || 'Untitled'}</span>
+                  <button class="icon-btn" onclick="event.stopPropagation(); startRenameRequest('\${col.id}', '\${req.id}')" title="Rename">✎</button>
                   <button class="icon-btn" onclick="event.stopPropagation(); deleteRequest('\${col.id}', '\${req.id}')" title="Delete">✕</button>
                 </div>
               \`).join('')

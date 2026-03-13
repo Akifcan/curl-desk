@@ -39,7 +39,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case "OPEN_PANEL": {
-          CurlDeskPanel.createOrShow(this.context);
+          CurlDeskPanel.createOrShow(this.context, () => this.refresh());
           // Pass selected request to main panel if provided
           if (message.payload) {
             setTimeout(() => {
@@ -64,6 +64,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             type: "COLLECTIONS_LOADED",
             payload: updated,
           });
+          CurlDeskPanel.currentPanel?.refreshCollections();
           break;
         }
         case "GET_ENVIRONMENTS": {
@@ -133,6 +134,35 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             type: "COLLECTIONS_LOADED",
             payload: updated,
           });
+          CurlDeskPanel.currentPanel?.refreshCollections();
+          break;
+        }
+        case "RENAME_REQUEST": {
+          const { collectionId, requestId, name } = message.payload as {
+            collectionId: string;
+            requestId: string;
+            name: string;
+          };
+          const renCols: unknown[] = this.context.globalState.get(
+            "curl-desk:collections",
+            [],
+          );
+          const renUpdated = (
+            renCols as Array<{ id: string; requests: Array<{ id: string; name: string }> }>
+          ).map((c) =>
+            c.id === collectionId
+              ? { ...c, requests: c.requests.map((r) => r.id === requestId ? { ...r, name } : r) }
+              : c,
+          );
+          await this.context.globalState.update(
+            "curl-desk:collections",
+            renUpdated,
+          );
+          webviewView.webview.postMessage({
+            type: "COLLECTIONS_LOADED",
+            payload: renUpdated,
+          });
+          CurlDeskPanel.currentPanel?.refreshCollections();
           break;
         }
         case "DELETE_REQUEST": {
@@ -159,6 +189,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             type: "COLLECTIONS_LOADED",
             payload: updated,
           });
+          CurlDeskPanel.currentPanel?.refreshCollections();
           break;
         }
       }
