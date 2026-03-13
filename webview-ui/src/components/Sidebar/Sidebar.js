@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Plus, X, Check, Zap } from 'lucide-react';
 import { CollectionItem } from './CollectionItem';
 import './Sidebar.css';
-export function Sidebar({ collections, activeRequestId, onSelectRequest, onAddCollection, onDeleteCollection, onDeleteRequest, onNewRequest, onSaveToCollection, }) {
+export function Sidebar({ collections, activeRequestId, onSelectRequest, onAddCollection, onDeleteCollection, onRenameCollection, onDeleteRequest, onNewRequest, onSaveToCollection, }) {
     const [addingCollection, setAddingCollection] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState('');
     const handleAddCollection = () => {
@@ -20,5 +20,5 @@ export function Sidebar({ collections, activeRequestId, onSelectRequest, onAddCo
                                 setAddingCollection(false);
                                 setNewCollectionName('');
                             }
-                        } }), _jsx("button", { className: "btn btn-primary btn-sm btn-icon", onClick: handleAddCollection, children: _jsx(Check, { size: 12, strokeWidth: 2.5 }) }), _jsx("button", { className: "btn btn-ghost btn-sm btn-icon", onClick: () => { setAddingCollection(false); setNewCollectionName(''); }, children: _jsx(X, { size: 12, strokeWidth: 2.5 }) })] })), _jsxs("div", { className: "sidebar-collections", children: [collections.length === 0 && !addingCollection && (_jsxs("div", { className: "sidebar-empty", children: [_jsx("p", { children: "No collections yet." }), _jsx("p", { children: "Create one to save requests." })] })), collections.map((col) => (_jsx(CollectionItem, { col: col, activeRequestId: activeRequestId, onSelectRequest: onSelectRequest, onDeleteCollection: onDeleteCollection, onDeleteRequest: onDeleteRequest, onSaveToCollection: onSaveToCollection }, col.id)))] })] }));
+                        } }), _jsx("button", { className: "btn btn-primary btn-sm btn-icon", onClick: handleAddCollection, children: _jsx(Check, { size: 12, strokeWidth: 2.5 }) }), _jsx("button", { className: "btn btn-ghost btn-sm btn-icon", onClick: () => { setAddingCollection(false); setNewCollectionName(''); }, children: _jsx(X, { size: 12, strokeWidth: 2.5 }) })] })), _jsxs("div", { className: "sidebar-collections", children: [collections.length === 0 && !addingCollection && (_jsxs("div", { className: "sidebar-empty", children: [_jsx("p", { children: "No collections yet." }), _jsx("p", { children: "Create one to save requests." })] })), collections.map((col) => (_jsx(CollectionItem, { col: col, activeRequestId: activeRequestId, onSelectRequest: onSelectRequest, onDeleteCollection: onDeleteCollection, onRenameCollection: onRenameCollection, onDeleteRequest: onDeleteRequest, onSaveToCollection: onSaveToCollection }, col.id)))] })] }));
 }

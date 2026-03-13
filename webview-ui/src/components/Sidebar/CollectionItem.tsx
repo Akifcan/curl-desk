@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, X, Check, Save, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, X, Check, Save, Trash2, Pencil } from 'lucide-react';
 import { Collection, Request, METHOD_COLORS } from '../../types';
 
 interface CollectionItemProps {
@@ -7,6 +7,7 @@ interface CollectionItemProps {
   activeRequestId: string;
   onSelectRequest: (req: Request) => void;
   onDeleteCollection: (id: string) => void;
+  onRenameCollection: (id: string, name: string) => void;
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
 }
@@ -16,11 +17,14 @@ export function CollectionItem({
   activeRequestId,
   onSelectRequest,
   onDeleteCollection,
+  onRenameCollection,
   onDeleteRequest,
   onSaveToCollection,
 }: CollectionItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveName, setSaveName] = useState('');
 
@@ -32,15 +36,39 @@ export function CollectionItem({
     }
   };
 
+  const handleRename = () => {
+    if (editName.trim() && editName.trim() !== col.name) {
+      onRenameCollection(col.id, editName.trim());
+    }
+    setEditing(false);
+  };
+
   return (
     <div className="collection">
-      <div className="collection-header" onClick={() => setIsExpanded((prev) => !prev)}>
+      <div className="collection-header" onClick={() => !editing && setIsExpanded((prev) => !prev)}>
         <span className="collection-arrow">
           {isExpanded
             ? <ChevronDown size={12} strokeWidth={2} />
             : <ChevronRight size={12} strokeWidth={2} />}
         </span>
-        <span className="collection-name">{col.name}</span>
+        {editing ? (
+          <span className="collection-edit" onClick={(e) => e.stopPropagation()}>
+            <input
+              autoFocus
+              className="collection-edit-input"
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename();
+                if (e.key === 'Escape') setEditing(false);
+              }}
+              onBlur={handleRename}
+            />
+          </span>
+        ) : (
+          <span className="collection-name" onDoubleClick={(e) => { e.stopPropagation(); setEditName(col.name); setEditing(true); }}>{col.name}</span>
+        )}
         <span className="collection-count">{col.requests.length}</span>
         {confirmDelete ? (
           <span className="confirm-delete" onClick={(e) => e.stopPropagation()}>
@@ -61,13 +89,22 @@ export function CollectionItem({
             </button>
           </span>
         ) : (
-          <button
-            className="icon-btn delete-btn"
-            onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
-            title="Delete collection"
-          >
-            <Trash2 size={11} strokeWidth={2.5} />
-          </button>
+          <span className="collection-actions">
+            <button
+              className="icon-btn"
+              onClick={(e) => { e.stopPropagation(); setEditName(col.name); setEditing(true); }}
+              title="Rename collection"
+            >
+              <Pencil size={11} strokeWidth={2.5} />
+            </button>
+            <button
+              className="icon-btn delete-btn"
+              onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+              title="Delete collection"
+            >
+              <Trash2 size={11} strokeWidth={2.5} />
+            </button>
+          </span>
         )}
       </div>
 

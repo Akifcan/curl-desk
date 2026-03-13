@@ -259,6 +259,15 @@ export function sidebarStyles(): string {
   .history-info { flex: 1; min-width: 0; }
   .history-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--vscode-foreground); font-size: 12px; }
 
+  .col-rename-input {
+    width: 100%; background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1.5px solid var(--vscode-focusBorder);
+    border-radius: 4px; padding: 2px 6px;
+    font-size: 13px; font-weight: 600; outline: none; min-width: 0;
+    font-family: var(--vscode-font-family);
+  }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--vscode-scrollbarSlider-background); border-radius: 2px; }
 `;

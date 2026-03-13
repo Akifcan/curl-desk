@@ -47,9 +47,9 @@ export function scriptRender(): string {
         <div class="collection-card">
           <div class="collection-header" onclick="toggleCollection('\${col.id}')">
             <span class="caret">\${isOpen ? '▾' : '▸'}</span>
-            <span class="col-name">\${col.name}</span>
+            <span class="col-name" id="col-name-\${col.id}" ondblclick="event.stopPropagation(); startRenameCollection('\${col.id}')">\${col.name}</span>
             <span class="col-count">\${col.requests.length}</span>
-            <span id="col-actions-\${col.id}"><button class="icon-btn" onclick="event.stopPropagation(); showDeleteConfirm('\${col.id}')" title="Delete">✕</button></span>
+            <span id="col-actions-\${col.id}">\${colActionsHtml('\${col.id}')}</span>
           </div>
           \${isOpen ? \`<div class="collection-body">\${
             col.requests.length === 0

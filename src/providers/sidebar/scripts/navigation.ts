@@ -24,7 +24,37 @@ export function scriptNavigation(): string {
   function cancelDeleteConfirm(id) {
     const el = document.getElementById('col-actions-' + id);
     if (!el) return;
-    el.innerHTML = '<button class="icon-btn" onclick="event.stopPropagation(); showDeleteConfirm(\\'' + id + '\\')" title="Delete">✕</button>';
+    el.innerHTML = colActionsHtml(id);
+  }
+
+  function colActionsHtml(id) {
+    return '<button class="icon-btn" onclick="event.stopPropagation(); startRenameCollection(\\'' + id + '\\')" title="Rename">✎</button>' +
+      '<button class="icon-btn" onclick="event.stopPropagation(); showDeleteConfirm(\\'' + id + '\\')" title="Delete">✕</button>';
+  }
+
+  function startRenameCollection(id) {
+    const col = collections.find(c => c.id === id);
+    if (!col) return;
+    const nameEl = document.getElementById('col-name-' + id);
+    if (!nameEl) return;
+    const oldName = col.name;
+    nameEl.innerHTML = '<input class="col-rename-input" type="text" value="' + escHtml(oldName) + '" onclick="event.stopPropagation()" />';
+    const input = nameEl.querySelector('input');
+    input.focus();
+    input.select();
+    const commit = () => {
+      const val = input.value.trim();
+      if (val && val !== oldName) {
+        vscode.postMessage({ type: 'RENAME_COLLECTION', payload: { id, name: val } });
+      } else {
+        nameEl.textContent = oldName;
+      }
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { nameEl.textContent = oldName; }
+    });
+    input.addEventListener('blur', commit);
   }
 
   function deleteHistoryItem(id) {

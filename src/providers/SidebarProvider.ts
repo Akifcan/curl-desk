@@ -116,6 +116,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           webviewView.webview.postMessage({ type: "HISTORY_LOADED", payload: updatedHist });
           break;
         }
+        case "RENAME_COLLECTION": {
+          const { id, name } = message.payload as { id: string; name: string };
+          const cols: unknown[] = this.context.globalState.get(
+            "curl-desk:collections",
+            [],
+          );
+          const updated = (
+            cols as Array<{ id: string; name: string }>
+          ).map((c) => (c.id === id ? { ...c, name } : c));
+          await this.context.globalState.update(
+            "curl-desk:collections",
+            updated,
+          );
+          webviewView.webview.postMessage({
+            type: "COLLECTIONS_LOADED",
+            payload: updated,
+          });
+          break;
+        }
         case "DELETE_REQUEST": {
           const { collectionId, requestId } = message.payload as {
             collectionId: string;
