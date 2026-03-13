@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, X, Check, Save } from 'lucide-react';
+import { ChevronRight, ChevronDown, X, Check, Save, Trash2 } from 'lucide-react';
 import { Collection, Request, METHOD_COLORS } from '../../types';
 
 interface CollectionItemProps {
@@ -20,6 +20,7 @@ export function CollectionItem({
   onSaveToCollection,
 }: CollectionItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveName, setSaveName] = useState('');
 
@@ -41,13 +42,33 @@ export function CollectionItem({
         </span>
         <span className="collection-name">{col.name}</span>
         <span className="collection-count">{col.requests.length}</span>
-        <button
-          className="icon-btn delete-btn"
-          onClick={(e) => { e.stopPropagation(); onDeleteCollection(col.id); }}
-          title="Delete collection"
-        >
-          <X size={11} strokeWidth={2.5} />
-        </button>
+        {confirmDelete ? (
+          <span className="confirm-delete" onClick={(e) => e.stopPropagation()}>
+            <span className="confirm-label">Delete?</span>
+            <button
+              className="icon-btn confirm-yes"
+              onClick={() => onDeleteCollection(col.id)}
+              title="Confirm delete"
+            >
+              <Check size={11} strokeWidth={2.5} />
+            </button>
+            <button
+              className="icon-btn confirm-no"
+              onClick={() => setConfirmDelete(false)}
+              title="Cancel"
+            >
+              <X size={11} strokeWidth={2.5} />
+            </button>
+          </span>
+        ) : (
+          <button
+            className="icon-btn delete-btn"
+            onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+            title="Delete collection"
+          >
+            <Trash2 size={11} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
       {isExpanded && (

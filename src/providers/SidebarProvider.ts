@@ -104,6 +104,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           }
           break;
         }
+        case "DELETE_HISTORY_ITEM": {
+          const historyList: unknown[] = this.context.globalState.get("curl-desk:history", []);
+          const updatedHist = (historyList as Array<{ id: string }>).filter(
+            (h) => h.id !== message.payload,
+          );
+          await this.context.globalState.update("curl-desk:history", updatedHist);
+          webviewView.webview.postMessage({ type: "HISTORY_LOADED", payload: updatedHist });
+          break;
+        }
         case "DELETE_REQUEST": {
           const { collectionId, requestId } = message.payload as {
             collectionId: string;
@@ -408,7 +417,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     font-size: 11px; opacity: 0; color: var(--vscode-descriptionForeground); transition: opacity 0.1s;
   }
   .collection-header:hover .icon-btn,
-  .request-row:hover .icon-btn { opacity: 1; }
+  .request-row:hover .icon-btn,
+  .history-item:hover .icon-btn { opacity: 1; }
   .icon-btn:hover { color: #e06c75 !important; }
 
   .collection-body { border-top: 1px solid var(--vscode-panel-border); padding: 4px 0; }
@@ -821,6 +831,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     vscode.postMessage({ type: 'DELETE_COLLECTION', payload: id });
   }
 
+  function showDeleteConfirm(id) {
+    const el = document.getElementById('col-actions-' + id);
+    if (!el) return;
+    el.innerHTML = '<span style="font-size:11px;color:#e06c75;font-weight:600;margin-right:2px;">Delete?</span>' +
+      '<button class="icon-btn" style="opacity:1;color:#e06c75;" onclick="event.stopPropagation(); deleteCollection(\\'' + id + '\\')" title="Confirm">✓</button>' +
+      '<button class="icon-btn" style="opacity:1;" onclick="event.stopPropagation(); cancelDeleteConfirm(\\'' + id + '\\')" title="Cancel">✕</button>';
+  }
+
+  function cancelDeleteConfirm(id) {
+    const el = document.getElementById('col-actions-' + id);
+    if (!el) return;
+    el.innerHTML = '<button class="icon-btn" onclick="event.stopPropagation(); showDeleteConfirm(\\'' + id + '\\')" title="Delete">✕</button>';
+  }
+
+  function deleteHistoryItem(id) {
+    vscode.postMessage({ type: 'DELETE_HISTORY_ITEM', payload: id });
+  }
+
   function deleteRequest(collectionId, requestId) {
     vscode.postMessage({ type: 'DELETE_REQUEST', payload: { collectionId, requestId } });
   }
@@ -843,6 +871,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <div class="history-info">
             <div class="history-url">\${escHtml(r.url || '')}</div>
           </div>
+          <button class="icon-btn" onclick="event.stopPropagation(); deleteHistoryItem('\${r.id}')" title="Delete">✕</button>
         </div>
       \`).join('');
       return;
@@ -873,7 +902,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <span class="caret">\${isOpen ? '▾' : '▸'}</span>
             <span class="col-name">\${col.name}</span>
             <span class="col-count">\${col.requests.length}</span>
-            <button class="icon-btn" onclick="event.stopPropagation(); deleteCollection('\${col.id}')" title="Delete">✕</button>
+            <span id="col-actions-\${col.id}"><button class="icon-btn" onclick="event.stopPropagation(); showDeleteConfirm('\${col.id}')" title="Delete">✕</button></span>
           </div>
           \${isOpen ? \`<div class="collection-body">\${
             col.requests.length === 0
