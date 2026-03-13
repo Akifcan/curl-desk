@@ -1,5 +1,38 @@
 export function scriptRequestHandler(): string {
   return `
+  function highlightJsonStr(json) {
+    var escaped = escHtml(json);
+    return escaped.replace(
+      /("(\\\\u[a-fA-F0-9]{4}|\\\\[^u]|[^\\\\\\"])*"(\\s*:)?|true|false|null|-?\\d+(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)/g,
+      function(m) {
+        var c = 'syn-num';
+        if (/^"/.test(m)) { c = /:$/.test(m) ? 'syn-key' : 'syn-str'; }
+        else if (/^(true|false)$/.test(m)) { c = 'syn-bool'; }
+        else if (m === 'null') { c = 'syn-null'; }
+        return '<span class="' + c + '">' + m + '</span>';
+      }
+    );
+  }
+
+  function formatBodyText(body) {
+    try {
+      return JSON.stringify(JSON.parse(body), null, 2);
+    } catch (e) {
+      return body;
+    }
+  }
+
+  function renderCodeWithLines(html) {
+    var lines = html.split('\\n');
+    var gutter = lines.map(function(_, i) {
+      return '<span class="sb-line-num">' + (i + 1) + '</span>';
+    }).join('');
+    return '<div class="sb-editor">' +
+      '<div class="sb-gutter">' + gutter + '</div>' +
+      '<pre class="sb-code"><code>' + html + '</code></pre>' +
+    '</div>';
+  }
+
   function sendQuickRequest() {
     if (!qrState.url.trim() || qrState.isLoading) return;
     qrState.isLoading = true;
@@ -49,14 +82,16 @@ export function scriptRequestHandler(): string {
       return;
     }
     const statusColor = payload.status < 300 ? '#98c379' : payload.status < 400 ? '#e5c07b' : '#e06c75';
+    const formatted = formatBodyText(payload.body);
+    const highlighted = highlightJsonStr(formatted);
+
     el.innerHTML = \`
       <div class="qr-resp-bar">
         <span class="qr-resp-status" style="color:\${statusColor}">\${payload.status} \${escHtml(payload.statusText)}</span>
         <span class="qr-resp-meta">\${payload.time}ms</span>
         <span class="qr-resp-meta">\${(payload.size / 1024).toFixed(1)}KB</span>
       </div>
-      <pre class="qr-resp-body">\${escHtml(payload.body)}</pre>
-    \`;
+    \` + renderCodeWithLines(highlighted);
   }
 `;
 }

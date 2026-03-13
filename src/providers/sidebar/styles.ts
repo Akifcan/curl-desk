@@ -166,13 +166,36 @@ export function sidebarStyles(): string {
   .qr-resp-bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--vscode-panel-border); background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-sideBar-background)); }
   .qr-resp-status { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; }
   .qr-resp-meta { font-size: 11px; color: var(--vscode-descriptionForeground); font-weight: 500; }
-  .qr-resp-body {
-    margin: 0; padding: 7px 10px; font-size: 12px;
-    font-family: var(--vscode-editor-font-family, monospace);
-    overflow-y: auto;
-    white-space: pre-wrap; word-break: break-all; line-height: 1.6;
-  }
   .qr-resp-error { padding: 7px 10px; font-size: 12px; color: #e06c75; word-break: break-word; }
+
+  .sb-editor { display: flex; min-height: 100%; }
+  .sb-gutter {
+    display: flex; flex-direction: column;
+    padding: 6px 0;
+    border-right: 1px solid var(--vscode-panel-border);
+    flex-shrink: 0; user-select: none;
+    position: sticky; left: 0; z-index: 1;
+    background: var(--vscode-editorGutter-background, var(--vscode-sideBar-background));
+  }
+  .sb-line-num {
+    display: block; padding: 0 8px 0 10px;
+    font-size: 11px; line-height: 1.6;
+    font-family: var(--vscode-editor-font-family, monospace);
+    color: var(--vscode-editorLineNumber-foreground, #495162);
+    text-align: right; min-width: 24px;
+  }
+  .sb-code {
+    margin: 0; padding: 6px 10px; font-size: 11px;
+    font-family: var(--vscode-editor-font-family, monospace);
+    line-height: 1.6; color: var(--vscode-foreground);
+    white-space: pre-wrap; word-break: break-all;
+    flex: 1; min-width: 0;
+  }
+  .syn-key { color: #9cdcfe; }
+  .syn-str { color: #ce9178; }
+  .syn-num { color: #b5cea8; }
+  .syn-bool { color: #569cd6; }
+  .syn-null { color: #569cd6; font-style: italic; }
 
   .spinner {
     display: inline-block; width: 11px; height: 11px;
