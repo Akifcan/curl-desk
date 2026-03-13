@@ -1,14 +1,16 @@
 import { X } from 'lucide-react';
-import { KeyValue } from '../../types';
+import { KeyValue, Environment } from '../../types';
+import { VarHighlightInput } from './VarHighlightInput';
 
 interface KeyValueTableProps {
   items: KeyValue[];
   onChangeField: (id: string, key: keyof KeyValue, value: string | boolean) => void;
   onRemove: (id: string) => void;
   keyPlaceholder: string;
+  activeEnv: Environment | null;
 }
 
-export function KeyValueTable({ items, onChangeField, onRemove, keyPlaceholder }: KeyValueTableProps) {
+export function KeyValueTable({ items, onChangeField, onRemove, keyPlaceholder, activeEnv }: KeyValueTableProps) {
   return (
     <div className="kv-table">
       <div className="kv-header">
@@ -25,20 +27,43 @@ export function KeyValueTable({ items, onChangeField, onRemove, keyPlaceholder }
             checked={item.enabled}
             onChange={(e) => onChangeField(item.id, 'enabled', e.target.checked)}
           />
-          <input
-            className="kv-input kv-key"
-            type="text"
-            placeholder={keyPlaceholder}
+          <VarHighlightInput
             value={item.key}
-            onChange={(e) => onChangeField(item.id, 'key', e.target.value)}
+            onChange={(val) => onChangeField(item.id, 'key', val)}
+            placeholder={keyPlaceholder}
+            activeEnv={activeEnv}
+            variant="kv"
           />
-          <input
-            className="kv-input kv-val"
-            type="text"
-            placeholder="value"
-            value={item.value}
-            onChange={(e) => onChangeField(item.id, 'value', e.target.value)}
-          />
+          <div className="var-highlight-wrap-kv kv-val-wrap">
+            <div className="var-highlight-mirror-kv" aria-hidden>
+              {item.value.split(/({{[^}]*}})/g).map((part, i) =>
+                /^{{[^}]*}}$/.test(part) ? (
+                  <mark
+                    key={i}
+                    className={
+                      activeEnv?.variables.some((v) => v.key === part.slice(2, -2).trim())
+                        ? 'var-token var-defined'
+                        : 'var-token var-undefined'
+                    }
+                  >
+                    {part}
+                  </mark>
+                ) : (
+                  <span key={i}>{part}</span>
+                )
+              )}
+              <span> </span>
+            </div>
+            <input
+              className="kv-input var-highlight-input-kv"
+              type="text"
+              placeholder="value"
+              value={item.value}
+              onChange={(e) => onChangeField(item.id, 'value', e.target.value)}
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
           <button
             className="kv-del icon-btn"
             onClick={() => onRemove(item.id)}

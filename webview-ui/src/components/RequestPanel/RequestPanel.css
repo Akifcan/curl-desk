@@ -110,6 +110,40 @@
   box-sizing: border-box;
 }
 
+/* KV variant */
+.var-highlight-wrap-kv {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.var-highlight-wrap-kv.kv-val-wrap {
+  flex: 2;
+}
+
+.var-highlight-mirror-kv {
+  position: absolute;
+  inset: 0;
+  padding: 5px 6px;
+  font-size: 13px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  color: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+.var-highlight-input-kv {
+  width: 100%;
+  background: transparent !important;
+  position: relative;
+  box-sizing: border-box;
+}
+
 .btn-send {
   min-width: 84px;
   padding: 8px 22px;

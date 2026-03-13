@@ -7,6 +7,7 @@ interface VarHighlightInputProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
   activeEnv: Environment | null;
+  variant?: 'url' | 'kv';
 }
 
 function renderHighlighted(value: string, activeEnv: Environment | null) {
@@ -25,7 +26,7 @@ function renderHighlighted(value: string, activeEnv: Environment | null) {
   });
 }
 
-export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, activeEnv }: VarHighlightInputProps) {
+export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, activeEnv, variant = 'url' }: VarHighlightInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
 
@@ -35,15 +36,17 @@ export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, act
     }
   };
 
+  const isKv = variant === 'kv';
+
   return (
-    <div className="var-highlight-wrap">
-      <div ref={mirrorRef} className="var-highlight-mirror" aria-hidden>
+    <div className={isKv ? 'var-highlight-wrap-kv' : 'var-highlight-wrap'}>
+      <div ref={mirrorRef} className={isKv ? 'var-highlight-mirror-kv' : 'var-highlight-mirror'} aria-hidden>
         {renderHighlighted(value, activeEnv)}
         <span> </span>
       </div>
       <input
         ref={inputRef}
-        className="url-input var-highlight-input"
+        className={isKv ? 'kv-input var-highlight-input-kv' : 'url-input var-highlight-input'}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}

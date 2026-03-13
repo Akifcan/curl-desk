@@ -63,6 +63,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           });
           break;
         }
+        case "GET_ENVIRONMENTS": {
+          const environments = this.context.globalState.get("curl-desk:environments", []);
+          const activeEnvId = this.context.globalState.get("curl-desk:activeEnvId", null);
+          webviewView.webview.postMessage({ type: "ENVIRONMENTS_LOADED", payload: { environments, activeEnvId } });
+          break;
+        }
         case "SEND_REQUEST": {
           try {
             const response = await executeRequest(message.payload);
@@ -135,6 +141,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           [],
         );
         const history = this.context.globalState.get("curl-desk:history", []);
+        const environments = this.context.globalState.get("curl-desk:environments", []);
+        const activeEnvId = this.context.globalState.get("curl-desk:activeEnvId", null);
         webviewView.webview.postMessage({
           type: "COLLECTIONS_LOADED",
           payload: collections,
@@ -142,6 +150,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.postMessage({
           type: "HISTORY_LOADED",
           payload: history,
+        });
+        webviewView.webview.postMessage({
+          type: "ENVIRONMENTS_LOADED",
+          payload: { environments, activeEnvId },
         });
       }
     });
@@ -218,14 +230,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
   .qr-method:focus { border-color: var(--vscode-focusBorder); }
 
+  .qr-url-wrap {
+    flex: 1; position: relative; min-width: 0;
+  }
+  .qr-url-mirror {
+    position: absolute; inset: 0;
+    padding: 6px 9px; font-size: 12px;
+    font-family: var(--vscode-editor-font-family, monospace);
+    white-space: pre; overflow: hidden; pointer-events: none;
+    color: transparent; border: 1.5px solid transparent;
+    border-radius: 6px; line-height: normal; box-sizing: border-box;
+  }
+  .qr-url-mirror .var-defined { background: rgba(152, 195, 121, 0.25); box-shadow: 0 0 0 1px rgba(152, 195, 121, 0.4); border-radius: 3px; color: transparent; }
+  .qr-url-mirror .var-undefined { background: rgba(224, 108, 117, 0.2); box-shadow: 0 0 0 1px rgba(224, 108, 117, 0.4); border-radius: 3px; color: transparent; }
+
   .qr-url {
-    flex: 1; background: var(--vscode-input-background);
+    width: 100%; background: transparent;
     color: var(--vscode-input-foreground);
     border: 1.5px solid var(--vscode-input-border);
     border-radius: 6px; padding: 6px 9px;
     font-size: 12px; outline: none; min-width: 0;
     font-family: var(--vscode-editor-font-family, monospace);
-    transition: border-color 0.15s;
+    transition: border-color 0.15s; position: relative; box-sizing: border-box;
   }
   .qr-url:focus { border-color: var(--vscode-focusBorder); }
   .qr-url::placeholder { color: var(--vscode-input-placeholderForeground); }
@@ -428,9 +454,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       <option value="HEAD">HEAD</option>
       <option value="OPTIONS">OPTIONS</option>
     </select>
-    <input class="qr-url" id="qr-url" type="text" placeholder="URL"
-      oninput="qrState.url = this.value"
-      onkeydown="if(event.key==='Enter') sendQuickRequest()" />
+    <div class="qr-url-wrap">
+      <div class="qr-url-mirror" id="qr-url-mirror"></div>
+      <input class="qr-url" id="qr-url" type="text" placeholder="URL"
+        oninput="qrState.url = this.value; updateUrlHighlight()"
+        onscroll="document.getElementById('qr-url-mirror').scrollLeft = this.scrollLeft"
+        onkeydown="if(event.key==='Enter') sendQuickRequest()" />
+    </div>
     <button class="qr-send" id="qr-send-btn" onclick="sendQuickRequest()" title="Send">&#9654;</button>
   </div>
   <div class="qr-tabs">
@@ -459,6 +489,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   const vscode = acquireVsCodeApi();
   let collections = [];
   let history = [];
+  let environments = [];
+  let activeEnvId = null;
   let activeTab = 'collections';
   let searchQuery = '';
   const METHOD_COLORS = {
@@ -654,7 +686,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     sendBtn.innerHTML = '<span class="spinner"></span>';
 
     const hdrs = {};
-    qrState.headers.filter(h => h.key.trim()).forEach(h => { hdrs[h.key] = h.value; });
+    qrState.headers.filter(h => h.key.trim()).forEach(h => { hdrs[replaceVars(h.key)] = replaceVars(h.value); });
     if (qrState.authType === 'bearer' && qrState.authToken) {
       hdrs['Authorization'] = 'Bearer ' + qrState.authToken;
     } else if (qrState.authType === 'basic') {
@@ -675,9 +707,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       type: 'SEND_REQUEST',
       payload: {
         method: qrState.method,
-        url: qrState.url,
+        url: replaceVars(qrState.url),
         headers: hdrs,
-        body: !isForm && qrState.bodyType !== 'none' ? qrState.body : undefined,
+        body: !isForm && qrState.bodyType !== 'none' ? replaceVars(qrState.body) : undefined,
         formFields,
         params: {},
       }
@@ -712,6 +744,39 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   renderQrTabContent();
 
   vscode.postMessage({ type: 'GET_COLLECTIONS' });
+  vscode.postMessage({ type: 'GET_ENVIRONMENTS' });
+
+  function getActiveEnv() {
+    if (!activeEnvId) return null;
+    return environments.find(e => e.id === activeEnvId) || null;
+  }
+
+  function replaceVars(str) {
+    const env = getActiveEnv();
+    if (!env) return str;
+    return str.replace(/\\{\\{([^}]+)\\}\\}/g, (_, key) => {
+      const v = env.variables.find(v => v.key === key.trim());
+      return v ? v.value : '{{' + key + '}}';
+    });
+  }
+
+  function updateUrlHighlight() {
+    const mirror = document.getElementById('qr-url-mirror');
+    const env = getActiveEnv();
+    const url = qrState.url;
+    if (!env || !url.includes('{{')) {
+      mirror.innerHTML = '';
+      return;
+    }
+    mirror.innerHTML = url.split(/(\\{\\{[^}]*\\}\\})/).map(part => {
+      if (/^\\{\\{[^}]*\\}\\}$/.test(part)) {
+        const key = part.slice(2, -2).trim();
+        const defined = env.variables.some(v => v.key === key);
+        return '<span class="' + (defined ? 'var-defined' : 'var-undefined') + '">' + escHtml(part) + '</span>';
+      }
+      return escHtml(part);
+    }).join('');
+  }
 
   window.addEventListener('message', (e) => {
     if (e.data.type === 'COLLECTIONS_LOADED') {
@@ -720,6 +785,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     } else if (e.data.type === 'HISTORY_LOADED') {
       history = e.data.payload || [];
       if (activeTab === 'history') render();
+    } else if (e.data.type === 'ENVIRONMENTS_LOADED') {
+      environments = e.data.payload.environments || [];
+      activeEnvId = e.data.payload.activeEnvId || null;
+      updateUrlHighlight();
     } else if (e.data.type === 'REQUEST_RESPONSE') {
       renderQrResponse('REQUEST_RESPONSE', e.data.payload);
     } else if (e.data.type === 'REQUEST_ERROR') {

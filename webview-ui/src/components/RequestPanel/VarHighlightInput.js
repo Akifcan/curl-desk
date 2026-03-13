@@ -11,7 +11,7 @@ function renderHighlighted(value, activeEnv) {
         return _jsx("span", { children: part }, i);
     });
 }
-export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, activeEnv }) {
+export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, activeEnv, variant = 'url' }) {
     const inputRef = useRef(null);
     const mirrorRef = useRef(null);
     const syncScroll = () => {
@@ -19,5 +19,6 @@ export function VarHighlightInput({ value, onChange, onKeyDown, placeholder, act
             mirrorRef.current.scrollLeft = inputRef.current.scrollLeft;
         }
     };
-    return (_jsxs("div", { className: "var-highlight-wrap", children: [_jsxs("div", { ref: mirrorRef, className: "var-highlight-mirror", "aria-hidden": true, children: [renderHighlighted(value, activeEnv), _jsx("span", { children: " " })] }), _jsx("input", { ref: inputRef, className: "url-input var-highlight-input", value: value, onChange: (e) => onChange(e.target.value), onKeyDown: onKeyDown, onScroll: syncScroll, placeholder: placeholder, spellCheck: false, autoComplete: "off" })] }));
+    const isKv = variant === 'kv';
+    return (_jsxs("div", { className: isKv ? 'var-highlight-wrap-kv' : 'var-highlight-wrap', children: [_jsxs("div", { ref: mirrorRef, className: isKv ? 'var-highlight-mirror-kv' : 'var-highlight-mirror', "aria-hidden": true, children: [renderHighlighted(value, activeEnv), _jsx("span", { children: " " })] }), _jsx("input", { ref: inputRef, className: isKv ? 'kv-input var-highlight-input-kv' : 'url-input var-highlight-input', value: value, onChange: (e) => onChange(e.target.value), onKeyDown: onKeyDown, onScroll: syncScroll, placeholder: placeholder, spellCheck: false, autoComplete: "off" })] }));
 }

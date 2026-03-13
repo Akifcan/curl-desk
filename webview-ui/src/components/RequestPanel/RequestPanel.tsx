@@ -133,6 +133,7 @@ export function RequestPanel({ request, onChange, onSend, isLoading, activeEnv }
             onChangeField={(id, key, value) => handleKvChange(activeTab, id, key, value)}
             onRemove={(id) => removeKv(activeTab, id)}
             keyPlaceholder={activeTab === 'params' ? 'param' : 'header'}
+            activeEnv={activeEnv}
           />
         )}
 
