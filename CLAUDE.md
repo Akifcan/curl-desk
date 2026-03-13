@@ -165,3 +165,13 @@ window.addEventListener('message', (event) => {
 ```
 
 Never try to import Node.js modules (`http`, `https`, `fs`, etc.) inside the webview UI — they are unavailable in a browser context. All Node.js operations must go through the extension host.
+
+### File Size
+
+Keep files short and focused. A single file should not exceed ~200 lines. If a file grows beyond that:
+
+- Split it into smaller, logically grouped files.
+- Each file should have a single, clear responsibility.
+- Use an index/barrel file to compose and re-export if needed.
+
+This applies to all code — TypeScript, CSS, HTML templates, inline scripts, etc.
