@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { vscode } from '../../vscode';
 
 type ViewMode = 'pretty' | 'raw';
 
@@ -63,29 +63,21 @@ function getMediaType(contentType: string): 'image' | 'video' | 'audio' | 'pdf' 
   return null;
 }
 
-function dataUriToBlob(dataUri: string): Blob {
-  const parts = dataUri.split(',');
-  const mime = parts[0].split(':')[1].split(';')[0];
-  const raw = atob(parts[1]);
-  const arr = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-  return new Blob([arr], { type: mime });
-}
+function BinaryViewer({ dataUri, contentType }: { dataUri: string; contentType: string }) {
+  const ext = contentType.split('/')[1]?.split(';')[0] || 'bin';
+  const sizeKb = Math.round((dataUri.length * 3) / 4 / 1024);
+  const label = contentType.split(';')[0];
 
-function PdfViewer({ dataUri }: { dataUri: string }) {
-  const [url, setUrl] = useState('');
+  const handleOpen = () => {
+    vscode.postMessage({ type: 'OPEN_BINARY_RESPONSE', payload: { dataUri, fileName: `response.${ext}` } });
+  };
 
-  useEffect(() => {
-    const blob = dataUriToBlob(dataUri);
-    const blobUrl = URL.createObjectURL(blob);
-    setUrl(blobUrl);
-    return () => URL.revokeObjectURL(blobUrl);
-  }, [dataUri]);
-
-  if (!url) return null;
   return (
-    <div className="response-media">
-      <iframe src={url} className="response-pdf" title="PDF Response" />
+    <div className="response-media response-binary">
+      <div className="binary-icon">📄</div>
+      <div className="binary-label">{label}</div>
+      <div className="binary-size">~{sizeKb} KB</div>
+      <button className="binary-open-btn" onClick={handleOpen}>Open in VS Code</button>
     </div>
   );
 }
@@ -134,7 +126,7 @@ export function ResponseBody({ body, viewMode, contentType }: ResponseBodyProps)
   }
 
   if (mediaType === 'pdf') {
-    return <PdfViewer dataUri={body} />;
+    return <BinaryViewer dataUri={body} contentType={contentType} />;
   }
 
   const highlighted = detectAndHighlight(body, viewMode);

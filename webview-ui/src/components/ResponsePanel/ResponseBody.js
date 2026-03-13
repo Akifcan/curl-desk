@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from 'react';
+import { vscode } from '../../vscode';
 function escapeHtml(str) {
     return str
         .replace(/&/g, '&amp;')
@@ -52,26 +52,14 @@ function getMediaType(contentType) {
         return 'pdf';
     return null;
 }
-function dataUriToBlob(dataUri) {
-    const parts = dataUri.split(',');
-    const mime = parts[0].split(':')[1].split(';')[0];
-    const raw = atob(parts[1]);
-    const arr = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++)
-        arr[i] = raw.charCodeAt(i);
-    return new Blob([arr], { type: mime });
-}
-function PdfViewer({ dataUri }) {
-    const [url, setUrl] = useState('');
-    useEffect(() => {
-        const blob = dataUriToBlob(dataUri);
-        const blobUrl = URL.createObjectURL(blob);
-        setUrl(blobUrl);
-        return () => URL.revokeObjectURL(blobUrl);
-    }, [dataUri]);
-    if (!url)
-        return null;
-    return (_jsx("div", { className: "response-media", children: _jsx("iframe", { src: url, className: "response-pdf", title: "PDF Response" }) }));
+function BinaryViewer({ dataUri, contentType }) {
+    const ext = contentType.split('/')[1]?.split(';')[0] || 'bin';
+    const sizeKb = Math.round((dataUri.length * 3) / 4 / 1024);
+    const label = contentType.split(';')[0];
+    const handleOpen = () => {
+        vscode.postMessage({ type: 'OPEN_BINARY_RESPONSE', payload: { dataUri, fileName: `response.${ext}` } });
+    };
+    return (_jsxs("div", { className: "response-media response-binary", children: [_jsx("div", { className: "binary-icon", children: "\uD83D\uDCC4" }), _jsx("div", { className: "binary-label", children: label }), _jsxs("div", { className: "binary-size", children: ["~", sizeKb, " KB"] }), _jsx("button", { className: "binary-open-btn", onClick: handleOpen, children: "Open in VS Code" })] }));
 }
 function CodeView({ highlighted }) {
     const lines = highlighted.split('\n');
@@ -89,7 +77,7 @@ export function ResponseBody({ body, viewMode, contentType }) {
         return (_jsx("div", { className: "response-media", children: _jsx("audio", { src: body, controls: true, className: "response-audio" }) }));
     }
     if (mediaType === 'pdf') {
-        return _jsx(PdfViewer, { dataUri: body });
+        return _jsx(BinaryViewer, { dataUri: body, contentType: contentType });
     }
     const highlighted = detectAndHighlight(body, viewMode);
     return _jsx(CodeView, { highlighted: highlighted });

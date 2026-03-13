@@ -198,6 +198,14 @@ export function sidebarStyles(): string {
   .syn-null { color: #569cd6; font-style: italic; }
 
   .sb-media { display: flex; align-items: center; justify-content: center; padding: 8px; overflow: auto; }
+  .sb-binary { flex-direction: column; gap: 6px; padding: 16px 8px; }
+  .sb-open-btn {
+    margin-top: 4px; padding: 6px 16px;
+    background: var(--vscode-button-background); color: var(--vscode-button-foreground);
+    border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .sb-open-btn:hover { background: var(--vscode-button-hoverBackground); }
   .sb-media-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; background: repeating-conic-gradient(#3e4451 0% 25%, transparent 0% 50%) 50% / 12px 12px; }
   .sb-media-video { max-width: 100%; max-height: 100%; border-radius: 4px; }
   .sb-media-audio { width: 100%; }

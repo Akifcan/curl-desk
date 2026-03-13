@@ -70,6 +70,10 @@ export function scriptRequestHandler(): string {
     });
   }
 
+  function openBinaryInVscode(dataUri, ext) {
+    vscode.postMessage({ type: 'OPEN_BINARY_RESPONSE', payload: { dataUri: dataUri, fileName: 'response.' + ext } });
+  }
+
   function renderMediaBody(contentType, body) {
     if (/^image\\//.test(contentType)) {
       return '<div class="sb-media"><img src="' + body + '" alt="Response" class="sb-media-img" /></div>';
@@ -80,8 +84,19 @@ export function scriptRequestHandler(): string {
     if (/^audio\\//.test(contentType)) {
       return '<div class="sb-media"><audio src="' + body + '" controls class="sb-media-audio"></audio></div>';
     }
+    if (/application\\/pdf/.test(contentType)) {
+      var sizeKb = Math.round((body.length * 3) / 4 / 1024);
+      return '<div class="sb-media sb-binary">' +
+        '<div style="font-size:36px">📄</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--vscode-foreground)">application/pdf</div>' +
+        '<div style="font-size:11px;color:var(--vscode-descriptionForeground)">~' + sizeKb + ' KB</div>' +
+        '<button class="sb-open-btn" onclick="openBinaryInVscode(lastResponseBody, \\'pdf\\')">Open in VS Code</button>' +
+      '</div>';
+    }
     return null;
   }
+
+  var lastResponseBody = '';
 
   function renderQrResponse(type, payload) {
     const el = document.getElementById('qr-response');
@@ -89,6 +104,7 @@ export function scriptRequestHandler(): string {
     sendBtn.disabled = false;
     sendBtn.innerHTML = '&#9654;';
     qrState.isLoading = false;
+    lastResponseBody = payload.body || '';
 
     if (type === 'REQUEST_ERROR') {
       el.innerHTML = \`<div class="qr-resp-error">\${escHtml(payload.message)}</div>\`;

@@ -1,4 +1,7 @@
 import * as vscode from "vscode";
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
 import { CurlDeskPanel } from "../panels/CurlDeskPanel";
 import { executeRequest } from "../utils/httpClient";
 import { sidebarStyles } from "./sidebar/styles";
@@ -190,6 +193,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             payload: updated,
           });
           CurlDeskPanel.currentPanel?.refreshCollections();
+          break;
+        }
+        case "OPEN_BINARY_RESPONSE": {
+          const { dataUri, fileName } = message.payload as { dataUri: string; fileName: string };
+          const match = dataUri.match(/^data:([^;]+);base64,(.+)$/s);
+          if (match) {
+            const tmpFile = path.join(os.tmpdir(), `curl-desk-${Date.now()}-${fileName}`);
+            fs.writeFileSync(tmpFile, Buffer.from(match[2], 'base64'));
+            const uri = vscode.Uri.file(tmpFile);
+            await vscode.commands.executeCommand("vscode.open", uri);
+          }
           break;
         }
       }
