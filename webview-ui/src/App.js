@@ -205,6 +205,13 @@ export default function App() {
                     : r) }
             : c));
     };
+    const handleRenameExample = (collectionId, requestId, exampleId, name) => {
+        saveCollections(collections.map((c) => c.id === collectionId
+            ? { ...c, requests: c.requests.map((r) => r.id === requestId
+                    ? { ...r, examples: (r.examples ?? []).map((e) => e.id === exampleId ? { ...e, name } : e) }
+                    : r) }
+            : c));
+    };
     const handleDeleteExample = (collectionId, requestId, exampleId) => {
         saveCollections(collections.map((c) => c.id === collectionId
             ? { ...c, requests: c.requests.map((r) => r.id === requestId
@@ -217,5 +224,10 @@ export default function App() {
         saveCollections(collections.map((c) => c.id === collectionId ? { ...c, requests: [...c.requests, saved] } : c));
     };
     const activeEnvName = environments.find((e) => e.id === activeEnvId)?.name ?? null;
-    return (_jsxs("div", { className: "app", children: [showEnvManager && (_jsx(EnvManager, { environments: environments, activeEnvId: activeEnvId, onSave: saveEnvs, onClose: () => setShowEnvManager(false) })), _jsx(Sidebar, { collections: collections, activeRequestId: activeTab.request.id, onSelectRequest: (req) => addTab(req), onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onRenameCollection: handleRenameCollection, onRenameRequest: handleRenameRequest, onDeleteRequest: handleDeleteRequest, onNewRequest: () => addTab(), onSaveToCollection: handleSaveToCollection, onDeleteExample: handleDeleteExample, onLoadExample: (resp) => updateTab(activeTab.id, { response: resp }) }), _jsxs("div", { className: "main-content", children: [_jsx(TabBar, { tabs: tabs, activeTabId: activeTabId, onSelect: setActiveTabId, onClose: closeTab, onNew: () => addTab(), onOpenEnv: () => setShowEnvManager(true), activeEnvName: activeEnvName }), _jsx(RequestPanel, { request: activeTab.request, onChange: (req) => updateTab(activeTab.id, { request: req }), onSend: handleSend, isLoading: activeTab.isLoading, activeEnv: environments.find((e) => e.id === activeEnvId) ?? null }), _jsx(ResponsePanel, { response: activeTab.response, error: activeTab.error, isLoading: activeTab.isLoading, collections: collections, activeRequestId: activeTab.request.id, onSaveExample: handleSaveExample })] })] }));
+    return (_jsxs("div", { className: "app", children: [showEnvManager && (_jsx(EnvManager, { environments: environments, activeEnvId: activeEnvId, onSave: saveEnvs, onClose: () => setShowEnvManager(false) })), _jsx(Sidebar, { collections: collections, activeRequestId: activeTab.request.id, onSelectRequest: (req) => addTab(req), onAddCollection: handleAddCollection, onDeleteCollection: handleDeleteCollection, onRenameCollection: handleRenameCollection, onRenameRequest: handleRenameRequest, onDeleteRequest: handleDeleteRequest, onNewRequest: () => addTab(), onSaveToCollection: handleSaveToCollection, onRenameExample: handleRenameExample, onDeleteExample: handleDeleteExample, onLoadExample: (req, resp) => {
+                    const tab = createAppTab(req);
+                    tab.response = resp;
+                    setTabs((prev) => [...prev, tab]);
+                    setActiveTabId(tab.id);
+                } }), _jsxs("div", { className: "main-content", children: [_jsx(TabBar, { tabs: tabs, activeTabId: activeTabId, onSelect: setActiveTabId, onClose: closeTab, onNew: () => addTab(), onOpenEnv: () => setShowEnvManager(true), activeEnvName: activeEnvName }), _jsx(RequestPanel, { request: activeTab.request, onChange: (req) => updateTab(activeTab.id, { request: req }), onSend: handleSend, isLoading: activeTab.isLoading, activeEnv: environments.find((e) => e.id === activeEnvId) ?? null }), _jsx(ResponsePanel, { response: activeTab.response, error: activeTab.error, isLoading: activeTab.isLoading, collections: collections, activeRequestId: activeTab.request.id, onSaveExample: handleSaveExample })] })] }));
 }

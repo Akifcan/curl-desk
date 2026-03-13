@@ -11,8 +11,9 @@ interface CollectionItemProps {
   onRenameRequest: (collectionId: string, requestId: string, name: string) => void;
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
+  onRenameExample: (collectionId: string, requestId: string, exampleId: string, name: string) => void;
   onDeleteExample: (collectionId: string, requestId: string, exampleId: string) => void;
-  onLoadExample: (response: ResponseData) => void;
+  onLoadExample: (request: Request, response: ResponseData) => void;
 }
 
 export function CollectionItem({
@@ -24,6 +25,7 @@ export function CollectionItem({
   onRenameRequest,
   onDeleteRequest,
   onSaveToCollection,
+  onRenameExample,
   onDeleteExample,
   onLoadExample,
 }: CollectionItemProps) {
@@ -35,7 +37,15 @@ export function CollectionItem({
   const [editReqName, setEditReqName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveName, setSaveName] = useState('');
-  const [expandedExamples, setExpandedExamples] = useState<string | null>(null);
+  const [editingExId, setEditingExId] = useState<string | null>(null);
+  const [editExName, setEditExName] = useState('');
+
+  const handleRenameExample = (reqId: string) => {
+    if (editingExId && editExName.trim()) {
+      onRenameExample(col.id, reqId, editingExId, editExName.trim());
+    }
+    setEditingExId(null);
+  };
 
   const handleSave = () => {
     if (saveName.trim()) {
@@ -163,16 +173,6 @@ export function CollectionItem({
                 )}
                 {editingReqId !== req.id && (
                   <span className="request-actions">
-                    {(req.examples?.length ?? 0) > 0 && (
-                      <button
-                        className="icon-btn"
-                        onClick={(e) => { e.stopPropagation(); setExpandedExamples(expandedExamples === req.id ? null : req.id); }}
-                        title="Examples"
-                      >
-                        <FileText size={10} strokeWidth={2.5} />
-                        <span className="example-count">{req.examples!.length}</span>
-                      </button>
-                    )}
                     <button
                       className="icon-btn"
                       onClick={(e) => { e.stopPropagation(); setEditingReqId(req.id); setEditReqName(req.name || ''); }}
@@ -190,22 +190,54 @@ export function CollectionItem({
                   </span>
                 )}
               </div>
-              {expandedExamples === req.id && req.examples && req.examples.length > 0 && (
+              {req.examples && req.examples.length > 0 && (
                 <div className="examples-list">
                   {req.examples.map((ex) => (
-                    <div key={ex.id} className="example-item" onClick={() => onLoadExample(ex.response)}>
+                    <div key={ex.id} className="example-item" onClick={() => editingExId !== ex.id && onLoadExample(req, ex.response)}>
                       <FileText size={10} strokeWidth={2} className="example-icon" />
-                      <span className="example-name">{ex.name}</span>
+                      {editingExId === ex.id ? (
+                        <input
+                          autoFocus
+                          className="example-edit-input"
+                          type="text"
+                          value={editExName}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => setEditExName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleRenameExample(req.id);
+                            if (e.key === 'Escape') setEditingExId(null);
+                          }}
+                          onBlur={() => handleRenameExample(req.id)}
+                        />
+                      ) : (
+                        <span
+                          className="example-name"
+                          onDoubleClick={(e) => { e.stopPropagation(); setEditingExId(ex.id); setEditExName(ex.name); }}
+                        >
+                          {ex.name}
+                        </span>
+                      )}
                       <span className={`example-status status-${Math.floor(ex.response.status / 100)}xx`}>
                         {ex.response.status}
                       </span>
-                      <button
-                        className="icon-btn delete-btn"
-                        onClick={(e) => { e.stopPropagation(); onDeleteExample(col.id, req.id, ex.id); }}
-                        title="Delete example"
-                      >
-                        <X size={10} strokeWidth={2.5} />
-                      </button>
+                      {editingExId !== ex.id && (
+                        <span className="example-actions">
+                          <button
+                            className="icon-btn"
+                            onClick={(e) => { e.stopPropagation(); setEditingExId(ex.id); setEditExName(ex.name); }}
+                            title="Rename example"
+                          >
+                            <Pencil size={9} strokeWidth={2.5} />
+                          </button>
+                          <button
+                            className="icon-btn delete-btn"
+                            onClick={(e) => { e.stopPropagation(); onDeleteExample(col.id, req.id, ex.id); }}
+                            title="Delete example"
+                          >
+                            <X size={10} strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>

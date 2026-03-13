@@ -249,6 +249,20 @@ export default function App() {
     );
   };
 
+  const handleRenameExample = (collectionId: string, requestId: string, exampleId: string, name: string) => {
+    saveCollections(
+      collections.map((c) =>
+        c.id === collectionId
+          ? { ...c, requests: c.requests.map((r) =>
+              r.id === requestId
+                ? { ...r, examples: (r.examples ?? []).map((e) => e.id === exampleId ? { ...e, name } : e) }
+                : r
+            ) }
+          : c
+      )
+    );
+  };
+
   const handleDeleteExample = (collectionId: string, requestId: string, exampleId: string) => {
     saveCollections(
       collections.map((c) =>
@@ -295,8 +309,14 @@ export default function App() {
         onDeleteRequest={handleDeleteRequest}
         onNewRequest={() => addTab()}
         onSaveToCollection={handleSaveToCollection}
+        onRenameExample={handleRenameExample}
         onDeleteExample={handleDeleteExample}
-        onLoadExample={(resp) => updateTab(activeTab.id, { response: resp })}
+        onLoadExample={(req, resp) => {
+          const tab = createAppTab(req);
+          tab.response = resp;
+          setTabs((prev) => [...prev, tab]);
+          setActiveTabId(tab.id);
+        }}
       />
       <div className="main-content">
         <TabBar

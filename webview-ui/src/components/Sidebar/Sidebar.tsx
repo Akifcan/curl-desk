@@ -15,8 +15,9 @@ interface SidebarProps {
   onDeleteRequest: (collectionId: string, requestId: string) => void;
   onNewRequest: () => void;
   onSaveToCollection: (collectionId: string, name: string) => void;
+  onRenameExample: (collectionId: string, requestId: string, exampleId: string, name: string) => void;
   onDeleteExample: (collectionId: string, requestId: string, exampleId: string) => void;
-  onLoadExample: (response: ResponseData) => void;
+  onLoadExample: (request: Request, response: ResponseData) => void;
 }
 
 export function Sidebar({
@@ -30,6 +31,7 @@ export function Sidebar({
   onDeleteRequest,
   onNewRequest,
   onSaveToCollection,
+  onRenameExample,
   onDeleteExample,
   onLoadExample,
 }: SidebarProps) {
@@ -109,6 +111,7 @@ export function Sidebar({
             onRenameRequest={onRenameRequest}
             onDeleteRequest={onDeleteRequest}
             onSaveToCollection={onSaveToCollection}
+            onRenameExample={onRenameExample}
             onDeleteExample={onDeleteExample}
             onLoadExample={onLoadExample}
           />

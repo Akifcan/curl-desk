@@ -379,10 +379,29 @@
 .example-status.status-4xx { background: rgba(224, 108, 117, 0.12); color: #e06c75; }
 .example-status.status-5xx { background: rgba(224, 108, 117, 0.18); color: #e06c75; }
 
-.example-item .icon-btn {
+.example-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.example-actions .icon-btn {
   opacity: 0;
 }
 
-.example-item:hover .icon-btn {
+.example-item:hover .example-actions .icon-btn {
   opacity: 1;
+}
+
+.example-edit-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--vscode-input-background, #1d2026);
+  color: var(--vscode-input-foreground, #abb2bf);
+  border: 1.5px solid var(--vscode-focusBorder, #528bff);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  outline: none;
 }
