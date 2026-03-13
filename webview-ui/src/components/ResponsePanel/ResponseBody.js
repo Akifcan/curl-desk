@@ -65,7 +65,10 @@ function CodeView({ highlighted }) {
     const lines = highlighted.split('\n');
     return (_jsxs("div", { className: "response-body-editor", children: [_jsx("div", { className: "line-gutter", "aria-hidden": true, children: lines.map((_, i) => (_jsx("span", { className: "line-num", children: i + 1 }, i))) }), _jsx("pre", { className: "response-body", children: _jsx("code", { dangerouslySetInnerHTML: { __html: highlighted } }) })] }));
 }
-export function ResponseBody({ body, viewMode, contentType }) {
+export function ResponseBody({ body, viewMode, contentType, htmlPreview }) {
+    if (htmlPreview) {
+        return (_jsx("div", { className: "response-html-preview", children: _jsx("iframe", { srcDoc: body, sandbox: "allow-same-origin", className: "html-preview-frame", title: "HTML Preview" }) }));
+    }
     const mediaType = getMediaType(contentType);
     if (mediaType === 'image') {
         return (_jsx("div", { className: "response-media", children: _jsx("img", { src: body, alt: "Response", className: "response-image" }) }));

@@ -306,6 +306,20 @@
   background: var(--vscode-button-hoverBackground, #4179e0);
 }
 
+/* HTML Preview */
+.response-html-preview {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.html-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
 /* Response Headers */
 .response-headers {
   padding: 8px 0;

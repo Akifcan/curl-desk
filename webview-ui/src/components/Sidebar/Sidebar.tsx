@@ -89,8 +89,8 @@ export function Sidebar({
       <div className="sidebar-collections">
         {collections.length === 0 && !addingCollection && (
           <div className="sidebar-empty">
-            <p>No collections yet.</p>
-            <p>Create one to save requests.</p>
+            <p>No collections yet</p>
+            <p>Click <strong>+ Collection</strong> above to create your first collection and start organizing your requests.</p>
           </div>
         )}
 

@@ -5,7 +5,7 @@ export function scriptRender(): string {
 
     if (activeTab === 'history') {
       if (history.length === 0) {
-        el.innerHTML = '<div class="empty">No history yet.<br>Send a request to see it here.</div>';
+        el.innerHTML = '<div class="empty">No history yet<br><span style="font-size:11px;margin-top:4px;display:block;">Enter a URL above and hit send to make your first request.</span></div>';
         return;
       }
       const filtered = searchQuery
@@ -26,7 +26,7 @@ export function scriptRender(): string {
 
     // Collections tab
     if (collections.length === 0) {
-      el.innerHTML = '<div class="empty">No collections yet.<br>Open Curl Desk to create one.</div>';
+      el.innerHTML = '<div class="empty">No collections yet<br><span style="font-size:11px;margin-top:4px;display:block;">Open Curl Desk to create your first collection and organize your API requests.</span></div>';
       return;
     }
 

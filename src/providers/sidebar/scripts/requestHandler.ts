@@ -97,6 +97,28 @@ export function scriptRequestHandler(): string {
   }
 
   var lastResponseBody = '';
+  var lastResponseHtml = false;
+  var lastStatusBar = '';
+  var lastHighlighted = '';
+
+  function isHtmlBody(body, ct) {
+    if (/text\\/html/i.test(ct)) return true;
+    return /^\\s*<!doctype\\s+html/i.test(body) || /^\\s*<html/i.test(body);
+  }
+
+  function toggleHtmlPreview() {
+    lastResponseHtml = !lastResponseHtml;
+    const el = document.getElementById('qr-response');
+    if (lastResponseHtml) {
+      el.innerHTML = lastStatusBar +
+        '<div class="qr-resp-bar"><button class="sb-html-toggle active" onclick="toggleHtmlPreview()">Source</button></div>' +
+        '<iframe class="sb-html-frame" sandbox="allow-same-origin" srcdoc="' + escHtml(lastResponseBody) + '"></iframe>';
+    } else {
+      el.innerHTML = lastStatusBar +
+        '<div class="qr-resp-bar"><button class="sb-html-toggle" onclick="toggleHtmlPreview()">Preview</button></div>' +
+        renderCodeWithLines(lastHighlighted);
+    }
+  }
 
   function renderQrResponse(type, payload) {
     const el = document.getElementById('qr-response');
@@ -105,13 +127,14 @@ export function scriptRequestHandler(): string {
     sendBtn.innerHTML = '&#9654;';
     qrState.isLoading = false;
     lastResponseBody = payload.body || '';
+    lastResponseHtml = false;
 
     if (type === 'REQUEST_ERROR') {
       el.innerHTML = \`<div class="qr-resp-error">\${escHtml(payload.message)}</div>\`;
       return;
     }
     const statusColor = payload.status < 300 ? '#98c379' : payload.status < 400 ? '#e5c07b' : '#e06c75';
-    const statusBar = \`
+    lastStatusBar = \`
       <div class="qr-resp-bar">
         <span class="qr-resp-status" style="color:\${statusColor}">\${payload.status} \${escHtml(payload.statusText)}</span>
         <span class="qr-resp-meta">\${payload.time}ms</span>
@@ -122,13 +145,19 @@ export function scriptRequestHandler(): string {
     const ct = payload.contentType || '';
     const media = renderMediaBody(ct, payload.body);
     if (media) {
-      el.innerHTML = statusBar + media;
+      el.innerHTML = lastStatusBar + media;
       return;
     }
 
     const formatted = formatBodyText(payload.body);
-    const highlighted = highlightJsonStr(formatted);
-    el.innerHTML = statusBar + renderCodeWithLines(highlighted);
+    lastHighlighted = highlightJsonStr(formatted);
+
+    var htmlToggle = '';
+    if (isHtmlBody(payload.body, ct)) {
+      htmlToggle = '<div class="qr-resp-bar"><button class="sb-html-toggle" onclick="toggleHtmlPreview()">Preview</button></div>';
+    }
+
+    el.innerHTML = lastStatusBar + htmlToggle + renderCodeWithLines(lastHighlighted);
   }
 `;
 }

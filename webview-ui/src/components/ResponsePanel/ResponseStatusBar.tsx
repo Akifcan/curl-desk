@@ -37,7 +37,7 @@ export function ResponseStatusBar({ response, error, isLoading }: ResponseStatus
 
       {!isLoading && !response && !error && (
         <div className="response-placeholder">
-          Hit <kbd>Send</kbd> to get a response
+          Enter a URL and hit <kbd>Send</kbd> to make your first request
         </div>
       )}
 

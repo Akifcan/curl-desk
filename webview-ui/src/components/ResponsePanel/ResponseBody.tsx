@@ -6,6 +6,7 @@ interface ResponseBodyProps {
   body: string;
   viewMode: ViewMode;
   contentType: string;
+  htmlPreview?: boolean;
 }
 
 function escapeHtml(str: string): string {
@@ -98,7 +99,20 @@ function CodeView({ highlighted }: { highlighted: string }) {
   );
 }
 
-export function ResponseBody({ body, viewMode, contentType }: ResponseBodyProps) {
+export function ResponseBody({ body, viewMode, contentType, htmlPreview }: ResponseBodyProps) {
+  if (htmlPreview) {
+    return (
+      <div className="response-html-preview">
+        <iframe
+          srcDoc={body}
+          sandbox="allow-same-origin"
+          className="html-preview-frame"
+          title="HTML Preview"
+        />
+      </div>
+    );
+  }
+
   const mediaType = getMediaType(contentType);
 
   if (mediaType === 'image') {

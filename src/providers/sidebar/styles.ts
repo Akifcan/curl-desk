@@ -206,6 +206,18 @@ export function sidebarStyles(): string {
     transition: background 0.15s;
   }
   .sb-open-btn:hover { background: var(--vscode-button-hoverBackground); }
+
+  .sb-html-toggle {
+    background: none; border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-descriptionForeground); cursor: pointer;
+    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sb-html-toggle:hover, .sb-html-toggle.active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-foreground);
+  }
+  .sb-html-frame { width: 100%; min-height: 120px; border: none; background: #fff; }
   .sb-media-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; background: repeating-conic-gradient(#3e4451 0% 25%, transparent 0% 50%) 50% / 12px 12px; }
   .sb-media-video { max-width: 100%; max-height: 100%; border-radius: 4px; }
   .sb-media-audio { width: 100%; }

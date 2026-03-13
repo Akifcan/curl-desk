@@ -23,9 +23,15 @@ function isJson(body: string): boolean {
   }
 }
 
+function isHtml(body: string, contentType: string): boolean {
+  if (/text\/html/i.test(contentType)) return true;
+  return /^\s*<!doctype\s+html/i.test(body) || /^\s*<html/i.test(body);
+}
+
 export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps) {
   const [activeTab, setActiveTab] = useState<ResponseTab>('body');
   const [viewMode, setViewMode] = useState<ViewMode>('pretty');
+  const [htmlPreview, setHtmlPreview] = useState(false);
 
   return (
     <div className="response-panel">
@@ -64,10 +70,27 @@ export function ResponsePanel({ response, error, isLoading }: ResponsePanelProps
                 </button>
               </div>
             )}
+
+            {activeTab === 'body' && isHtml(response.body, response.contentType ?? '') && (
+              <div className="view-mode-toggle">
+                <button
+                  className={`mode-btn ${!htmlPreview ? 'active' : ''}`}
+                  onClick={() => setHtmlPreview(false)}
+                >
+                  Source
+                </button>
+                <button
+                  className={`mode-btn ${htmlPreview ? 'active' : ''}`}
+                  onClick={() => setHtmlPreview(true)}
+                >
+                  Preview
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="response-content">
-            {activeTab === 'body' && <ResponseBody body={response.body} viewMode={viewMode} contentType={response.contentType ?? ''} />}
+            {activeTab === 'body' && <ResponseBody body={response.body} viewMode={viewMode} contentType={response.contentType ?? ''} htmlPreview={htmlPreview} />}
             {activeTab === 'headers' && <ResponseHeaders headers={response.headers} />}
           </div>
         </>
