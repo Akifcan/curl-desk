@@ -15,6 +15,7 @@ import {
   ResponseData,
   createAppTab,
   createDefaultRequest,
+  createKeyValue,
   generateId,
 } from './types';
 import { vscode } from './vscode';
@@ -103,16 +104,39 @@ export default function App() {
           addTab(message.payload as Request);
           break;
         case 'LOAD_PARSED_REQUEST': {
-          const { method, url, body } = message.payload as {
-            method: string; url: string; body?: string;
+          const { method, url, body, headers } = message.payload as {
+            method: string; url: string; body?: string; headers?: Record<string, string>;
           };
-          addTab({
-            ...createDefaultRequest(),
-            method: method as HttpMethod,
-            url,
-            body: body ?? '',
-            bodyType: body ? 'json' : 'none',
-          });
+          const req = createDefaultRequest();
+          req.method = method as HttpMethod;
+          req.url = url;
+          req.body = body ?? '';
+          req.bodyType = body ? 'json' : 'none';
+          if (headers) {
+            const authHeader = headers['Authorization'] || headers['authorization'];
+            if (authHeader) {
+              if (authHeader.toLowerCase().startsWith('bearer ')) {
+                req.auth = { type: 'bearer', token: authHeader.slice(7), username: '', password: '' };
+              } else if (authHeader.toLowerCase().startsWith('basic ')) {
+                let username = '', password = '';
+                try {
+                  const decoded = atob(authHeader.slice(6));
+                  const [user, ...passParts] = decoded.split(':');
+                  username = user;
+                  password = passParts.join(':');
+                } catch {}
+                req.auth = { type: 'basic', token: '', username, password };
+              }
+            }
+            const filtered = Object.entries(headers).filter(([k]) => k.toLowerCase() !== 'authorization');
+            if (filtered.length > 0) {
+              req.headers = [
+                ...filtered.map(([key, value]) => ({ id: generateId(), key, value, enabled: true })),
+                createKeyValue(),
+              ];
+            }
+          }
+          addTab(req);
           break;
         }
         case 'LOAD_BODY': {

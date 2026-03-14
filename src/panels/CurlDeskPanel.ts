@@ -176,8 +176,8 @@ export class CurlDeskPanel {
     this._panel.webview.postMessage({ type: 'LOAD_BODY', payload: { body, bodyType } });
   }
 
-  /** Open a new tab pre-filled from a parsed API call (method + url + optional body) */
-  public loadParsedRequest(parsed: { method: string; url: string; body?: string }) {
+  /** Open a new tab pre-filled from a parsed API call */
+  public loadParsedRequest(parsed: { method: string; url: string; body?: string; headers?: Record<string, string> }) {
     this._panel.webview.postMessage({ type: 'LOAD_PARSED_REQUEST', payload: parsed });
   }
 
